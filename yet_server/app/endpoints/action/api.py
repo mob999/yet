@@ -1,4 +1,3 @@
-from typing import List
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +17,7 @@ async def create_definition(
 ):
     return await service.create_action_definition(db, definition_in, creator_id=current_user.id)
 
-@router.get("/definitions", response_model=List[schemas.ActionDefinition])
+@router.get("/definitions", response_model=list[schemas.ActionDefinition])
 async def get_definitions(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -33,7 +32,7 @@ async def create_record(
 ):
     return await service.create_action_record(db, record_in, user_id=current_user.id)
 
-@router.get("/records", response_model=List[schemas.ActionRecord])
+@router.get("/records", response_model=list[schemas.ActionRecord])
 async def get_my_records(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)

@@ -7,9 +7,9 @@ from loguru import logger
 
 from . import logger as _  # noqa: F401
 from .database import Base, engine
+from .endpoints.action import api as action_api
 from .endpoints.group import api as group_api
 from .endpoints.user import api as user_api
-from .endpoints.action import api as action_api
 from .exceptions import (
     APIException,
     api_exception_handler,

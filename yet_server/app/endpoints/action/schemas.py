@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import Any, List
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 class ActionDefinitionBase(BaseModel):
     name: str
     icon_url: str | None = None
-    input_schema: List[dict[str, Any]] = Field(default_factory=list)
+    input_schema: list[dict[str, Any]] = Field(default_factory=list)
 
     @field_validator("input_schema", mode="before")
     @classmethod

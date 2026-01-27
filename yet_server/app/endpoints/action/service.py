@@ -1,7 +1,8 @@
 import json
+
+from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from loguru import logger
 
 from ... import models
 from . import schemas
