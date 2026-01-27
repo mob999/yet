@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 from .endpoints import user, group
+from .database import engine, Base
+
+# Create tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Yet API")
 
