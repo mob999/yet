@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
 
@@ -28,6 +29,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Yet API", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Register Exception Handlers
 app.add_exception_handler(APIException, api_exception_handler)

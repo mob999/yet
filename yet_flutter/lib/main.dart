@@ -1,29 +1,56 @@
 import 'package:flutter/material.dart';
+import 'src/services/auth_service.dart';
+import 'screens/sign_in_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+
+  // Use 10.0.2.2 for Android emulator to access localhost,
+  // or use your local IP if testing on physical device.
+  // We'll use a dynamic baseUrl if needed, but for now 127.0.0.1 (Web/iOS simulator).
+  const baseUrl = "http://127.0.0.1:8000";
+  final authService = AuthService(baseUrl: baseUrl);
+
+  runApp(MyApp(authService: authService));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final AuthService authService;
+
+  const MyApp({super.key, required this.authService});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Yet?',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        scaffoldBackgroundColor: Colors.grey[100],
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.teal,
+          primary: Colors.teal,
+        ),
+        scaffoldBackgroundColor: Colors.grey[50],
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       ),
-      home: const HelloWorldScreen(),
+      home: SignInScreen(
+        authService: authService,
+        child: HelloWorldScreen(authService: authService),
+      ),
     );
   }
 }
 
 class HelloWorldScreen extends StatelessWidget {
-  const HelloWorldScreen({super.key});
+  final AuthService authService;
+
+  const HelloWorldScreen({super.key, required this.authService});
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +59,24 @@ class HelloWorldScreen extends StatelessWidget {
         title: const Text('Yet?'),
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await authService.logout();
+              // In a real app, use a proper Navigator for state management
+              // For now, simple restart app feel:
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => MyApp(authService: authService),
+                  ),
+                  (route) => false,
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: Center(
         child: Card(
@@ -52,7 +97,7 @@ class HelloWorldScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Hello World',
+                  'Authenticated!',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -60,7 +105,7 @@ class HelloWorldScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'This is a mobile-style layout.',
+                  'You are now logged in via FastAPI.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
