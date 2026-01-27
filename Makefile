@@ -1,28 +1,22 @@
-.PHONY: docker-up server-generate server-start flutter-run clean help
+.PHONY: server-run flutter-run flutter-gen clean help
 
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  make docker-up       - Start Docker containers (DB + Redis)"
-	@echo "  make server-generate - Run 'serverpod generate' in server directory"
-	@echo "  make server-start    - Start the backend server with migrations"
+	@echo "  make server-run      - Run the FastAPI backend using uv"
 	@echo "  make flutter-run     - Run the Flutter app"
+	@echo "  make flutter-gen     - Generate Flutter API client from Swagger"
 	@echo "  make clean           - Clean build artifacts and get dependencies"
 
-docker-up:
-	cd yet_server && docker compose up --build --detach
-
-server-generate:
-	# Uses the locally activated serverpod executable if in PATH, or falls back to pub
-	cd yet_server && serverpod generate
-
-server-start:
-	cd yet_server && dart bin/main.dart --apply-migrations
+server-run:
+	cd yet_server && uv run uvicorn app.main:app --reload
 
 flutter-run:
 	cd yet_flutter && flutter run
 
+flutter-gen:
+	cd yet_flutter && flutter pub run swagger_parser:generate
+
 clean:
-	cd yet_server && rm -rf .dart_tool pubspec.lock && dart pub get
-	cd yet_client && rm -rf .dart_tool pubspec.lock && dart pub get
+	cd yet_server && rm -rf .venv uv.lock
 	cd yet_flutter && rm -rf .dart_tool pubspec.lock && flutter pub get

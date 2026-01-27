@@ -9,3 +9,7 @@ app.include_router(group.router, prefix="/groups", tags=["groups"])
 @app.get("/")
 def read_root():
     return {"Hello": "Yet"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}

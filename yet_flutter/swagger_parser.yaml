@@ -1,0 +1,7 @@
+swagger_parser:
+  schema_path: assets/openapi.json # We can also use a URL later
+  output_directory: lib/src/generated
+  language: dart
+  client_api: dio
+  root_client: true
+  freezed: false
