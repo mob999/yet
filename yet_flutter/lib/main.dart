@@ -10,6 +10,7 @@ void main() async {
   // We'll use a dynamic baseUrl if needed, but for now 127.0.0.1 (Web/iOS simulator).
   const baseUrl = "http://127.0.0.1:8000";
   final authService = AuthService(baseUrl: baseUrl);
+  AuthService.instance = authService;
 
   runApp(MyApp(authService: authService));
 }

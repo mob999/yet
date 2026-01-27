@@ -5,8 +5,13 @@
 // Clients
 export 'users/users_client.dart';
 export 'groups/groups_client.dart';
+export 'actions/actions_client.dart';
 export 'fallback/fallback_client.dart';
 // Data classes
+export 'models/action_definition.dart';
+export 'models/action_definition_create.dart';
+export 'models/action_record.dart';
+export 'models/action_record_create.dart';
 export 'models/body_login_users_login_post.dart';
 export 'models/group.dart';
 export 'models/group_create.dart';

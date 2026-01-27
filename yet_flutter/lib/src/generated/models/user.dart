@@ -13,6 +13,7 @@ class User {
     required this.id,
     required this.isActive,
     required this.createdAt,
+    required this.updatedAt,
   });
   
   factory User.fromJson(Map<String, Object?> json) => _$UserFromJson(json);
@@ -23,6 +24,8 @@ class User {
   final bool isActive;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
+  @JsonKey(name: 'updated_at')
+  final DateTime updatedAt;
 
   Map<String, Object?> toJson() => _$UserToJson(this);
 }

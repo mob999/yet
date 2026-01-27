@@ -29,7 +29,9 @@ flutter-run:
 	cd yet_flutter && flutter run
 
 flutter-gen:
+	cd yet_server && uv run python export_openapi.py
 	cd yet_flutter && dart run swagger_parser
+	cd yet_flutter && dart run build_runner build --delete-conflicting-outputs
 
 clean:
 	cd yet_server && rm -rf .venv uv.lock

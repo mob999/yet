@@ -4,26 +4,29 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-part 'group.g.dart';
+part 'action_definition.g.dart';
 
 @JsonSerializable()
-class Group {
-  const Group({
+class ActionDefinition {
+  const ActionDefinition({
     required this.name,
     required this.id,
-    required this.inviteCode,
     required this.creatorId,
     required this.createdAt,
     required this.updatedAt,
+    this.iconUrl,
+    this.inputSchema,
     this.deletedAt,
   });
   
-  factory Group.fromJson(Map<String, Object?> json) => _$GroupFromJson(json);
+  factory ActionDefinition.fromJson(Map<String, Object?> json) => _$ActionDefinitionFromJson(json);
   
   final String name;
+  @JsonKey(name: 'icon_url')
+  final String? iconUrl;
+  @JsonKey(name: 'input_schema')
+  final List<dynamic>? inputSchema;
   final int id;
-  @JsonKey(name: 'invite_code')
-  final String inviteCode;
   @JsonKey(name: 'creator_id')
   final int creatorId;
   @JsonKey(name: 'created_at')
@@ -33,5 +36,5 @@ class Group {
   @JsonKey(name: 'deleted_at')
   final DateTime? deletedAt;
 
-  Map<String, Object?> toJson() => _$GroupToJson(this);
+  Map<String, Object?> toJson() => _$ActionDefinitionToJson(this);
 }

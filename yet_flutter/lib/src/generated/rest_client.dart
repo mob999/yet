@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 
 import 'users/users_client.dart';
 import 'groups/groups_client.dart';
+import 'actions/actions_client.dart';
 import 'fallback/fallback_client.dart';
 
 /// Yet API `v0.1.0`
@@ -23,11 +24,14 @@ class RestClient {
 
   UsersClient? _users;
   GroupsClient? _groups;
+  ActionsClient? _actions;
   FallbackClient? _fallback;
 
   UsersClient get users => _users ??= UsersClient(_dio, baseUrl: _baseUrl);
 
   GroupsClient get groups => _groups ??= GroupsClient(_dio, baseUrl: _baseUrl);
+
+  ActionsClient get actions => _actions ??= ActionsClient(_dio, baseUrl: _baseUrl);
 
   FallbackClient get fallback => _fallback ??= FallbackClient(_dio, baseUrl: _baseUrl);
 }
