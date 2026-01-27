@@ -30,3 +30,19 @@ def authenticate_user(db: Session, email: str, password: str):
         return None
     logger.info(f"User authenticated: {email}")
     return user
+
+def update_user_profile(db: Session, user_id: int, profile_in: schemas.UserProfileUpdate):
+    db_profile = db.query(models.UserProfile).filter(models.UserProfile.user_id == user_id).first()
+    if not db_profile:
+        # Should not happen as profile is created on registration, but for safety:
+        db_profile = models.UserProfile(user_id=user_id)
+        db.add(db_profile)
+    
+    update_data = profile_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_profile, field, value)
+    
+    db.commit()
+    db.refresh(db_profile)
+    logger.info(f"User profile updated for user_id: {user_id}")
+    return db_profile

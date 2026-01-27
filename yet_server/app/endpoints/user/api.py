@@ -46,3 +46,11 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 @router.get("/me", response_model=schemas.User)
 def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+@router.put("/me/profile", response_model=schemas.UserProfile)
+def update_my_profile(
+    profile_in: schemas.UserProfileUpdate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return service.update_user_profile(db, user_id=current_user.id, profile_in=profile_in)
