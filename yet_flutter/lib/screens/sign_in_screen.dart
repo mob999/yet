@@ -88,23 +88,18 @@ class _SignInScreenState extends State<SignInScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.lock_outline_rounded,
-                size: 80,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 32),
               Text(
-                _isLoginMode ? 'Welcome Back' : 'Create Account',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                'Yet?',
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 48),
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(
-                  labelText: 'Email',
+                  labelText: '邮箱',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
@@ -114,7 +109,7 @@ class _SignInScreenState extends State<SignInScreen> {
               TextField(
                 controller: _passwordController,
                 decoration: const InputDecoration(
-                  labelText: 'Password',
+                  labelText: '密码',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.password_outlined),
                 ),
@@ -135,7 +130,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(_isLoginMode ? 'Login' : 'Register'),
+                      : Text(_isLoginMode ? '登录' : '注册'),
                 ),
               ),
               const SizedBox(height: 16),
@@ -144,9 +139,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   setState(() => _isLoginMode = !_isLoginMode);
                 },
                 child: Text(
-                  _isLoginMode
-                      ? "Don't have an account? Register"
-                      : "Already have an account? Login",
+                  _isLoginMode ? "没有账号？去注册" : "已有账号？去登录",
                 ),
               ),
             ],
