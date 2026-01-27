@@ -16,3 +16,13 @@ class Group(GroupBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class GroupJoin(BaseModel):
+    invite_code: str
+
+class GroupMember(BaseModel):
+    user_id: int
+    group_id: int
+    joined_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
