@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
@@ -16,15 +18,16 @@ from .exceptions import (
 # Create tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Yet API")
-
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
     logger.info("Application starting up...")
-
-@app.on_event("shutdown")
-async def shutdown_event():
+    yield
+    # Shutdown
     logger.info("Application shutting down...")
+
+
+app = FastAPI(title="Yet API", lifespan=lifespan)
 
 # Register Exception Handlers
 app.add_exception_handler(APIException, api_exception_handler)

@@ -19,3 +19,11 @@ dependencies = [
 [tool.ruff.lint]
 select = ["C4", "E", "F", "I", "PERF", "UP"]
 ignore = ["PERF203", "E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+asyncio_mode = "auto"
+
+[dependency-groups]
+dev = ["httpx>=0.28.1", "pytest>=9.0.2", "pytest-asyncio>=1.3.0"]
