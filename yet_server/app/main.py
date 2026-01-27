@@ -1,8 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from . import logger as _  # noqa: F401
@@ -16,13 +16,17 @@ from .exceptions import (
     validation_exception_handler,
 )
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+
+# Helper to create tables asynchronously
+async def create_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Application starting up...")
+    await create_tables()
     yield
     # Shutdown
     logger.info("Application shutting down...")

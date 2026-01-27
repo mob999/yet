@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # Database Settings
-    DATABASE_URL: str = "sqlite:///./yet.db"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./yet.db"
 
     # Security Settings
     SECRET_KEY: str = "your-secret-key-here-change-this-in-production"

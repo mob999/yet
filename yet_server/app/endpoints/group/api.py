@@ -1,6 +1,6 @@
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database import get_db
 from ...endpoints.user.api import get_current_user
@@ -11,20 +11,20 @@ from . import schemas, service
 router = APIRouter()
 
 @router.post("/", response_model=schemas.Group)
-def create_group(
+async def create_group(
     group_in: schemas.GroupCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return service.create_group(db, group_in, creator_id=current_user.id)
+    return await service.create_group(db, group_in, creator_id=current_user.id)
 
 @router.post("/join", response_model=schemas.Group)
-def join_group(
+async def join_group(
     join_in: schemas.GroupJoin,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    group, error = service.join_group(db, user_id=current_user.id, invite_code=join_in.invite_code)
+    group, error = await service.join_group(db, user_id=current_user.id, invite_code=join_in.invite_code)
     if error:
         if error == "Invalid invite code":
             raise NotFoundError(error)
@@ -32,8 +32,8 @@ def join_group(
     return group
 
 @router.get("/me", response_model=list[schemas.Group])
-def get_my_groups(
-    db: Session = Depends(get_db),
+async def get_my_groups(
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return service.get_user_groups(db, user_id=current_user.id)
+    return await service.get_user_groups(db, user_id=current_user.id)

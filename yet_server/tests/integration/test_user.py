@@ -1,11 +1,14 @@
+import pytest
 
-def test_update_user_profile(client):
+
+@pytest.mark.asyncio
+async def test_update_user_profile(client):
     # Register and login
-    client.post(
+    await client.post(
         "/users/register",
         json={"email": "profile@example.com", "password": "password123"}
     )
-    login_response = client.post(
+    login_response = await client.post(
         "/users/login",
         data={"username": "profile@example.com", "password": "password123"}
     )
@@ -17,7 +20,7 @@ def test_update_user_profile(client):
         "gender": "male",
         "birth_date": "1990-01-01T00:00:00"
     }
-    response = client.put(
+    response = await client.put(
         "/users/me/profile",
         json=new_data,
         headers={"Authorization": f"Bearer {token}"}
@@ -28,8 +31,9 @@ def test_update_user_profile(client):
     assert data["gender"] == "male"
     assert "1990-01-01" in data["birth_date"]
 
-def test_update_profile_unauthorized(client):
-    response = client.put(
+@pytest.mark.asyncio
+async def test_update_profile_unauthorized(client):
+    response = await client.put(
         "/users/me/profile",
         json={"gender": "female"}
     )

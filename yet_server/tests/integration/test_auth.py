@@ -1,5 +1,9 @@
-def test_user_registration(client):
-    response = client.post(
+import pytest
+
+
+@pytest.mark.asyncio
+async def test_user_registration(client):
+    response = await client.post(
         "/users/register",
         json={"email": "test@example.com", "password": "password123"}
     )
@@ -8,28 +12,30 @@ def test_user_registration(client):
     assert data["email"] == "test@example.com"
     assert "id" in data
 
-def test_user_registration_duplicate_email(client):
+@pytest.mark.asyncio
+async def test_user_registration_duplicate_email(client):
     # First registration
-    client.post(
+    await client.post(
         "/users/register",
         json={"email": "test@example.com", "password": "password123"}
     )
     # Duplicate registration
-    response = client.post(
+    response = await client.post(
         "/users/register",
         json={"email": "test@example.com", "password": "password123"}
     )
     assert response.status_code == 400
     assert response.json()["message"] == "Email already registered"
 
-def test_user_login(client):
+@pytest.mark.asyncio
+async def test_user_login(client):
     # Register user
-    client.post(
+    await client.post(
         "/users/register",
         json={"email": "test@example.com", "password": "password123"}
     )
     # Login
-    response = client.post(
+    response = await client.post(
         "/users/login",
         data={"username": "test@example.com", "password": "password123"}
     )
@@ -38,32 +44,34 @@ def test_user_login(client):
     assert "access_token" in data
     assert data["token_type"] == "bearer"
 
-def test_user_login_wrong_password(client):
-    client.post(
+@pytest.mark.asyncio
+async def test_user_login_wrong_password(client):
+    await client.post(
         "/users/register",
         json={"email": "test@example.com", "password": "password123"}
     )
-    response = client.post(
+    response = await client.post(
         "/users/login",
         data={"username": "test@example.com", "password": "wrongpassword"}
     )
     assert response.status_code == 401
     assert response.json()["message"] == "Incorrect email or password"
 
-def test_get_me(client):
+@pytest.mark.asyncio
+async def test_get_me(client):
     # Register and login
-    client.post(
+    await client.post(
         "/users/register",
         json={"email": "test@example.com", "password": "password123"}
     )
-    login_response = client.post(
+    login_response = await client.post(
         "/users/login",
         data={"username": "test@example.com", "password": "password123"}
     )
     token = login_response.json()["access_token"]
     
     # Get me
-    response = client.get(
+    response = await client.get(
         "/users/me",
         headers={"Authorization": f"Bearer {token}"}
     )
