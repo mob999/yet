@@ -8,7 +8,9 @@ from loguru import logger
 from . import logger as _  # noqa: F401
 from .database import Base, engine
 from .endpoints.group import api as group_api
+from .endpoints.group import api as group_api
 from .endpoints.user import api as user_api
+from .endpoints.action import api as action_api
 from .exceptions import (
     APIException,
     api_exception_handler,
@@ -48,7 +50,9 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, global_exception_handler)
 
 app.include_router(user_api.router, prefix="/users", tags=["users"])
+app.include_router(user_api.router, prefix="/users", tags=["users"])
 app.include_router(group_api.router, prefix="/groups", tags=["groups"])
+app.include_router(action_api.router, prefix="/actions", tags=["actions"])
 
 @app.get("/")
 def read_root():
