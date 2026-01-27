@@ -19,6 +19,12 @@ server-lint:
 server-test:
 	cd yet_server && uv run pytest
 
+db-migrate:
+	cd yet_server && uv run alembic revision --autogenerate -m "$(msg)"
+
+db-upgrade:
+	cd yet_server && uv run alembic upgrade head
+
 flutter-run:
 	cd yet_flutter && flutter run
 

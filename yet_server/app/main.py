@@ -26,7 +26,7 @@ async def create_tables():
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Application starting up...")
-    await create_tables()
+    # await create_tables()  # Disabled in favor of Alembic migrations
     yield
     # Shutdown
     logger.info("Application shutting down...")
