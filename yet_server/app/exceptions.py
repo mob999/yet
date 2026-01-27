@@ -2,6 +2,7 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from typing import Any, Optional
+from loguru import logger
 
 class APIException(Exception):
     """Base API Exception"""
@@ -34,6 +35,7 @@ class BusinessError(APIException):
         super().__init__(message, code=code, status_code=status.HTTP_400_BAD_REQUEST)
 
 async def api_exception_handler(request: Request, exc: APIException):
+    logger.warning(f"API Exception: {exc.message} (code={exc.code}, status={exc.status_code})")
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -44,6 +46,7 @@ async def api_exception_handler(request: Request, exc: APIException):
     )
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.warning(f"Validation Error: {exc.errors()}")
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
@@ -54,6 +57,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled Exception: {exc}")
     # Log the full exception here in a real app
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -28,3 +28,15 @@ class UserProfile(Base):
     deleted_at = Column(DateTime, nullable=True)
 
     user = relationship("User", back_populates="profile")
+
+
+class SystemLog(Base):
+    __tablename__ = "system_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    level = Column(String, index=True)
+    message = Column(String)
+    module = Column(String, nullable=True)
+    function = Column(String, nullable=True)
+    line = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
