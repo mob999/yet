@@ -27,10 +27,6 @@ dependencies:
   cupertino_icons: ^1.0.5
   flutter:
     sdk: flutter
-  yet_client:
-    path: ../yet_client
-  serverpod_flutter: 3.2.3
-  serverpod_auth_idp_flutter: 3.2.3
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'

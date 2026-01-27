@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../main.dart';
-
 class GreetingsScreen extends StatefulWidget {
   final Future<void> Function()? onSignOut;
   const GreetingsScreen({super.key, this.onSignOut});
@@ -24,6 +22,8 @@ class _GreetingsScreenState extends State<GreetingsScreen> {
   /// `_resultMessage` or `_errorMessage` field, depending on if the call
   /// is successful.
   void _callHello() async {
+    // Commented out Serverpod logic
+    /*
     try {
       final result = await client.greeting.hello(_textEditingController.text);
       setState(() {
@@ -35,6 +35,10 @@ class _GreetingsScreenState extends State<GreetingsScreen> {
         _errorMessage = '$e';
       });
     }
+    */
+    setState(() {
+      _resultMessage = "Backend refactor in progress...";
+    });
   }
 
   @override
