@@ -1,8 +1,10 @@
 import sys
+
 from loguru import logger
-from sqlalchemy.orm import Session
+
 from .database import SessionLocal
 from .models import SystemLog
+
 
 class DatabaseSink:
     def __init__(self):

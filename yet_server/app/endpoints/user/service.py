@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Session
 from loguru import logger
+from sqlalchemy.orm import Session
 
 from ... import models, security
 from . import schemas

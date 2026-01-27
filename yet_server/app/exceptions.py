@@ -1,8 +1,10 @@
+from typing import Any
+
 from fastapi import Request, status
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from typing import Any, Optional
+from fastapi.responses import JSONResponse
 from loguru import logger
+
 
 class APIException(Exception):
     """Base API Exception"""
@@ -11,7 +13,7 @@ class APIException(Exception):
         message: str, 
         code: int = 400, 
         status_code: int = status.HTTP_400_BAD_REQUEST,
-        data: Optional[Any] = None
+        data: Any | None = None
     ):
         self.message = message
         self.code = code

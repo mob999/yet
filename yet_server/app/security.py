@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import bcrypt
 from jose import jwt
+
 from .config import settings
 
 # Configuration moved to config.py
