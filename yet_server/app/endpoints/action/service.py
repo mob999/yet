@@ -35,6 +35,7 @@ async def create_action_record(db: AsyncSession, record_in: schemas.ActionRecord
     
     db_record = models.ActionRecord(
         user_id=user_id,
+        group_id=record_in.group_id,
         definition_id=record_in.definition_id,
         input_data=data_str,
         occurred_at=record_in.occurred_at

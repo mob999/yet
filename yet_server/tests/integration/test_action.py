@@ -45,7 +45,15 @@ async def test_create_action_record(client):
     )
     token = login_res.json()["access_token"]
     
-    # 2. Create definition
+    # 2. Create Group
+    group_res = await client.post(
+        "/groups/",
+        json={"name": "Action Group"},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    group_id = group_res.json()["id"]
+
+    # 3. Create definition
     def_res = await client.post(
         "/actions/definitions",
         json={
@@ -56,11 +64,12 @@ async def test_create_action_record(client):
     )
     def_id = def_res.json()["id"]
     
-    # 3. Create record
+    # 4. Create record
     response = await client.post(
         "/actions/records",
         json={
             "definition_id": def_id,
+            "group_id": group_id,
             "input_data": {"volume": 250},
             "occurred_at": "2023-10-27T10:00:00"
         },
@@ -69,6 +78,7 @@ async def test_create_action_record(client):
     assert response.status_code == 200
     data = response.json()
     assert data["definition_id"] == def_id
+    assert data["group_id"] == group_id
     assert data["input_data"]["volume"] == 250
 
 @pytest.mark.asyncio
@@ -76,6 +86,14 @@ async def test_get_my_records(client):
     # Setup user and definition
     await client.post("/users/register", json={"email": "list@example.com", "password": "p"})
     token = (await client.post("/users/login", data={"username": "list@example.com", "password": "p"})).json()["access_token"]
+    
+    # Create Group
+    group_res = await client.post(
+        "/groups/",
+        json={"name": "Action Group"},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    group_id = group_res.json()["id"]
     
     def_id = (await client.post(
         "/actions/definitions", 
@@ -86,12 +104,12 @@ async def test_get_my_records(client):
     # Create 2 records
     await client.post(
         "/actions/records",
-        json={"definition_id": def_id, "input_data": {"val": 1}},
+        json={"definition_id": def_id, "group_id": group_id, "input_data": {"val": 1}},
         headers={"Authorization": f"Bearer {token}"}
     )
     await client.post(
         "/actions/records",
-        json={"definition_id": def_id, "input_data": {"val": 2}},
+        json={"definition_id": def_id, "group_id": group_id, "input_data": {"val": 2}},
         headers={"Authorization": f"Bearer {token}"}
     )
     

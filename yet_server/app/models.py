@@ -57,6 +57,8 @@ class Group(TimestampMixin, Base):
 
     creator = relationship("User", back_populates="created_groups")
     members = relationship("GroupMember", back_populates="group", cascade="all, delete-orphan")
+    action_definitions = relationship("GroupActionDefinition", back_populates="group", cascade="all, delete-orphan")
+    action_records = relationship("ActionRecord", back_populates="group")
 
 
 class GroupMember(TimestampMixin, Base):
@@ -81,15 +83,28 @@ class ActionDefinition(TimestampMixin, Base):
 
     creator = relationship("User", back_populates="action_definitions")
     records = relationship("ActionRecord", back_populates="definition")
+    groups = relationship("GroupActionDefinition", back_populates="definition")
 
 
 class ActionRecord(TimestampMixin, Base):
     __tablename__ = "action_records"
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
     definition_id = Column(Integer, ForeignKey("action_definitions.id"), nullable=False)
     input_data = Column(String, nullable=False, default="{}")  # Stored as JSON string
     occurred_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
 
     user = relationship("User", back_populates="action_records")
+    group = relationship("Group", back_populates="action_records")
     definition = relationship("ActionDefinition", back_populates="records")
+
+
+class GroupActionDefinition(TimestampMixin, Base):
+    __tablename__ = "group_action_definitions"
+
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
+    definition_id = Column(Integer, ForeignKey("action_definitions.id"), nullable=False)
+
+    group = relationship("Group", back_populates="action_definitions")
+    definition = relationship("ActionDefinition", back_populates="groups")

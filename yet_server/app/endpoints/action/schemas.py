@@ -52,11 +52,13 @@ class ActionRecordBase(BaseModel):
 
 class ActionRecordCreate(ActionRecordBase):
     definition_id: int
+    group_id: int
 
 
 class ActionRecord(ActionRecordBase):
     id: int
     user_id: int
+    group_id: int
     definition_id: int
     created_at: datetime
     updated_at: datetime
