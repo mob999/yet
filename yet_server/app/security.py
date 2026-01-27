@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
-from typing import Optional
-from jose import JWTError, jwt
+
 import bcrypt
+from jose import jwt
 
 # Configuration
 SECRET_KEY = "your-secret-key-here-change-this-in-production"
@@ -19,7 +19,7 @@ def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta

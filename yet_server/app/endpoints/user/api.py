@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
 from jose import JWTError, jwt
-from ..database import get_db
-from .. import models, schemas, security
-from ..security import SECRET_KEY, ALGORITHM
+from sqlalchemy.orm import Session
+
+from ... import models, security
+from ...database import get_db
+from ...security import ALGORITHM, SECRET_KEY
+from . import schemas, service
 
 router = APIRouter()
 
@@ -24,34 +26,22 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         token_data = schemas.TokenData(email=email)
     except JWTError:
         raise credentials_exception
-    user = db.query(models.User).filter(models.User.email == token_data.email).first()
+    user = service.get_user_by_email(db, email=token_data.email)
     if user is None:
         raise credentials_exception
     return user
 
 @router.post("/register", response_model=schemas.User)
 def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == user_in.email).first()
+    db_user = service.get_user_by_email(db, email=user_in.email)
     if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    hashed_password = security.get_password_hash(user_in.password)
-    new_user = models.User(email=user_in.email, hashed_password=hashed_password)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    # Create empty profile for the user
-    new_profile = models.UserProfile(user_id=new_user.id)
-    db.add(new_profile)
-    db.commit()
-    
-    return new_user
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    return service.create_user(db, user_in)
 
 @router.post("/login", response_model=schemas.Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == form_data.username).first()
-    if not user or not security.verify_password(form_data.password, user.hashed_password):
+    user = service.authenticate_user(db, form_data.username, form_data.password)
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

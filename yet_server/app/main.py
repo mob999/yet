@@ -1,14 +1,16 @@
 from fastapi import FastAPI
-from .endpoints import user, group
-from .database import engine, Base
+
+from .database import Base, engine
+from .endpoints.group import api as group_api
+from .endpoints.user import api as user_api
 
 # Create tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Yet API")
 
-app.include_router(user.router, prefix="/users", tags=["users"])
-app.include_router(group.router, prefix="/groups", tags=["groups"])
+app.include_router(user_api.router, prefix="/users", tags=["users"])
+app.include_router(group_api.router, prefix="/groups", tags=["groups"])
 
 @app.get("/")
 def read_root():
