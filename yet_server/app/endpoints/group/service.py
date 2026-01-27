@@ -1,9 +1,12 @@
 import random
 import string
-from sqlalchemy.orm import Session
+
 from loguru import logger
+from sqlalchemy.orm import Session
+
 from ... import models
 from . import schemas
+
 
 def generate_invite_code(length: int = 8) -> str:
     """Generate a random alphanumeric invite code."""
@@ -39,7 +42,7 @@ def create_group(db: Session, group_in: schemas.GroupCreate, creator_id: int):
 def join_group(db: Session, user_id: int, invite_code: str):
     group = db.query(models.Group).filter(
         models.Group.invite_code == invite_code,
-        models.Group.deleted_at == None
+        models.Group.deleted_at is None
     ).first()
     
     if not group:
@@ -49,7 +52,7 @@ def join_group(db: Session, user_id: int, invite_code: str):
     existing_member = db.query(models.GroupMember).filter(
         models.GroupMember.user_id == user_id,
         models.GroupMember.group_id == group.id,
-        models.GroupMember.deleted_at == None
+        models.GroupMember.deleted_at is None
     ).first()
     
     if existing_member:
@@ -68,6 +71,6 @@ def join_group(db: Session, user_id: int, invite_code: str):
 def get_user_groups(db: Session, user_id: int):
     return db.query(models.Group).join(models.GroupMember).filter(
         models.GroupMember.user_id == user_id,
-        models.GroupMember.deleted_at == None,
-        models.Group.deleted_at == None
+        models.GroupMember.deleted_at is None,
+        models.Group.deleted_at is None
     ).all()

@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import List
 
 from ...database import get_db
 from ...endpoints.user.api import get_current_user
-from ...models import User
 from ...exceptions import BusinessError, NotFoundError
+from ...models import User
 from . import schemas, service
 
 router = APIRouter()
@@ -31,7 +31,7 @@ def join_group(
         raise BusinessError(error)
     return group
 
-@router.get("/me", response_model=List[schemas.Group])
+@router.get("/me", response_model=list[schemas.Group])
 def get_my_groups(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

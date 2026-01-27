@@ -1,4 +1,3 @@
-from datetime import datetime
 
 def test_update_user_profile(client):
     # Register and login
