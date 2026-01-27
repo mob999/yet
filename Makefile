@@ -23,7 +23,7 @@ flutter-run:
 	cd yet_flutter && flutter run
 
 flutter-gen:
-	cd yet_flutter && flutter pub run swagger_parser:generate
+	cd yet_flutter && dart run swagger_parser
 
 clean:
 	cd yet_server && rm -rf .venv uv.lock
