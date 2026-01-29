@@ -16,6 +16,7 @@ from .exceptions import (
     global_exception_handler,
     validation_exception_handler,
 )
+from .listeners import register_listeners
 
 
 # Helper to create tables asynchronously
@@ -25,9 +26,15 @@ async def create_tables():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    # Initialize DB
     logger.info("Application starting up...")
-    # await create_tables()  # Disabled in favor of Alembic migrations
+    async with engine.begin() as conn:
+        # await conn.run_sync(Base.metadata.drop_all) # Reset DB
+        await conn.run_sync(Base.metadata.create_all)
+    
+    # Register Event Listeners
+    register_listeners()
+    
     yield
     # Shutdown
     logger.info("Application shutting down...")

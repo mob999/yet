@@ -6,6 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ... import models
+
+# Fire Domain Event (Side Effect)
+from ...events.action_events import ActionCreatedEvent
+from ...events.bus import event_bus
 from . import schemas
 
 
@@ -127,6 +131,17 @@ async def create_action_record(db: AsyncSession, record_in: schemas.ActionRecord
             await db.refresh(r)
         
         logger.info(f"Action Record broadcast to {len(records)} groups for user {user_id} on definition {record_in.definition_id}")
+        
+        # We publish a single event containing all created record IDs and target group IDs
+        # This allows listeners to handle the broadcast logic efficiently in one go.
+        if records:
+            await event_bus.publish(ActionCreatedEvent(
+                record_ids=[r.id for r in records],
+                user_id=records[0].user_id,
+                definition_id=records[0].definition_id,
+                input_data=records[0].input_data,
+                target_group_ids=[r.group_id for r in records]
+            ))
 
     return records
 
