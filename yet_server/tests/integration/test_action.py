@@ -34,6 +34,53 @@ async def test_create_action_definition(client):
     assert data["input_schema"][0]["key"] == "duration"
 
 @pytest.mark.asyncio
+async def test_update_action_definition(client):
+    # Setup
+    await client.post("/users/register", json={"email": "updater@example.com", "password": "p"})
+    token = (await client.post("/users/login", data={"username": "updater@example.com", "password": "p"})).json()["access_token"]
+    
+    # Group A
+    gid_a = (await client.post("/groups/", json={"name": "A"}, headers={"Authorization": f"Bearer {token}"})).json()["id"]
+    # Group B
+    gid_b = (await client.post("/groups/", json={"name": "B"}, headers={"Authorization": f"Bearer {token}"})).json()["id"]
+
+    # Create def with target A
+    def_data = await client.post(
+        "/actions/definitions", 
+        json={"name": "Sleep", "target_group_ids": [gid_a]},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    def_id = def_data.json()["id"]
+
+    # Execute to verify broadcast to A
+    rec_res = await client.post(
+        "/actions/records",
+        json={"definition_id": def_id, "input_data": {}},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert len(rec_res.json()) == 1
+    assert rec_res.json()[0]["group_id"] == gid_a
+    
+    # Update def: change name, target B (remove A)
+    update_res = await client.put(
+        f"/actions/definitions/{def_id}",
+        json={"name": "Deep Sleep", "target_group_ids": [gid_b]},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert update_res.status_code == 200
+    assert update_res.json()["name"] == "Deep Sleep"
+    
+    # Execute again to verify broadcast to B
+    rec_res_2 = await client.post(
+        "/actions/records",
+        json={"definition_id": def_id, "input_data": {}},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    rec_data = rec_res_2.json()
+    assert len(rec_data) == 1
+    assert rec_data[0]["group_id"] == gid_b
+
+@pytest.mark.asyncio
 async def test_create_action_record(client):
     # 1. Create user and login
     await client.post(
@@ -59,7 +106,8 @@ async def test_create_action_record(client):
         "/actions/definitions",
         json={
             "name": "Water",
-            "input_schema": [{"key": "volume", "type": "int"}]
+            "input_schema": [{"key": "volume", "type": "int"}],
+            "target_group_ids": [group_id]
         },
         headers={"Authorization": f"Bearer {token}"}
     )
@@ -78,9 +126,12 @@ async def test_create_action_record(client):
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["definition_id"] == def_id
-    assert data["group_id"] == group_id
-    assert data["input_data"]["volume"] == 250
+    assert isinstance(data, list)
+    assert len(data) == 1
+    record = data[0]
+    assert record["definition_id"] == def_id
+    assert record["group_id"] == group_id
+    assert record["input_data"]["volume"] == 250
 
 @pytest.mark.asyncio
 async def test_get_my_records(client):
@@ -96,11 +147,13 @@ async def test_get_my_records(client):
     )
     group_id = group_res.json()["id"]
     
-    def_id = (await client.post(
+    # Create definition with target
+    def_res = await client.post(
         "/actions/definitions", 
-        json={"name": "Test"}, 
+        json={"name": "Test", "target_group_ids": [group_id]}, 
         headers={"Authorization": f"Bearer {token}"}
-    )).json()["id"]
+    )
+    def_id = def_res.json()["id"]
     
     # Create 2 records
     await client.post(

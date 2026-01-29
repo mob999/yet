@@ -22,7 +22,14 @@ class ActionDefinitionBase(BaseModel):
 
 
 class ActionDefinitionCreate(ActionDefinitionBase):
-    pass
+    target_group_ids: list[int] = Field(default_factory=list)
+
+
+class ActionDefinitionUpdate(BaseModel):
+    name: str | None = None
+    icon_url: str | None = None
+    input_schema: list[dict[str, Any]] | None = None
+    target_group_ids: list[int] | None = None
 
 
 class ActionDefinition(ActionDefinitionBase):
@@ -52,7 +59,7 @@ class ActionRecordBase(BaseModel):
 
 class ActionRecordCreate(ActionRecordBase):
     definition_id: int
-    group_id: int
+    # group_id is removed, derived from broadcast targets
 
 
 class ActionRecord(ActionRecordBase):

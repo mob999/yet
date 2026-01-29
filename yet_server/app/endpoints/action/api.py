@@ -24,13 +24,22 @@ async def get_definitions(
 ):
     return await service.get_action_definitions(db)
 
-@router.post("/records", response_model=schemas.ActionRecord)
+@router.post("/records", response_model=list[schemas.ActionRecord])
 async def create_record(
     record_in: schemas.ActionRecordCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     return await service.create_action_record(db, record_in, user_id=current_user.id)
+
+@router.put("/definitions/{definition_id}", response_model=schemas.ActionDefinition | None)
+async def update_definition(
+    definition_id: int,
+    definition_in: schemas.ActionDefinitionUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return await service.update_action_definition(db, definition_id, definition_in)
 
 @router.get("/records", response_model=list[schemas.ActionRecord])
 async def get_my_records(
