@@ -68,7 +68,10 @@ class _SignInScreenState extends State<SignInScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => MainScreen(authService: widget.authService),
+              builder: (context) => MainScreen(
+                authService: widget.authService,
+                configService: widget.configService,
+              ),
             ),
           );
         }

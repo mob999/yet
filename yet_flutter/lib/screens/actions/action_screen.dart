@@ -497,11 +497,19 @@ class _ActionEditorDialogState extends State<ActionEditorDialog> {
                 child: TextField(
                   controller: item.keyController,
                   style: theme.textTheme.bodyMedium,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Key (ID)',
+                    labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      fontSize: 14,
+                    ),
                     hintText: '例如: amount',
+                    hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.4),
+                      fontSize: 14,
+                    ),
                     isDense: true,
-                    contentPadding: EdgeInsets.symmetric(
+                    contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 12,
                     ),
@@ -548,11 +556,19 @@ class _ActionEditorDialogState extends State<ActionEditorDialog> {
           TextField(
             controller: item.labelController,
             style: theme.textTheme.bodyMedium,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: '显示名称 (Label)',
+              labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                fontSize: 14,
+              ),
               hintText: '例如: 金额',
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.4),
+                fontSize: 14,
+              ),
               isDense: true,
-              contentPadding: EdgeInsets.symmetric(
+              contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 12,
               ),
@@ -826,17 +842,55 @@ class _ActionInputDialogState extends State<_ActionInputDialog> {
       return TextField(
         controller: _controllers[field.key],
         keyboardType: TextInputType.number,
+        style: theme.textTheme.bodyMedium,
         decoration: InputDecoration(
           labelText: field.label,
+          labelStyle: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
+            fontSize: 14,
+          ),
           hintText: '请输入数字',
+          hintStyle: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.4),
+            fontSize: 14,
+          ),
+          filled: true,
+          fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
       );
     } else if (field.type == ActionInputType.text) {
       return TextField(
         controller: _controllers[field.key],
+        style: theme.textTheme.bodyMedium,
         decoration: InputDecoration(
           labelText: field.label,
+          labelStyle: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
+            fontSize: 14,
+          ),
           hintText: '请输入内容',
+          hintStyle: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.4),
+            fontSize: 14,
+          ),
+          filled: true,
+          fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
       );
     } else {
