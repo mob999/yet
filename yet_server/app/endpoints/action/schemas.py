@@ -5,10 +5,24 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
+from enum import Enum
+
+class ActionInputType(str, Enum):
+    NUMBER = "number"
+    TEXT = "text"
+    IMAGE = "image"
+
+
+class ActionInputField(BaseModel):
+    key: str
+    label: str
+    type: ActionInputType
+
+
 class ActionDefinitionBase(BaseModel):
     name: str
     icon_url: str | None = None
-    input_schema: list[dict[str, Any]] = Field(default_factory=list)
+    input_schema: list[ActionInputField] = Field(default_factory=list)
 
     @field_validator("input_schema", mode="before")
     @classmethod

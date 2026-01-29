@@ -21,7 +21,7 @@ async def test_create_action_definition(client):
             "name": "Gym Workout",
             "icon_url": "gym.png",
             "input_schema": [
-                {"key": "duration", "label": "Duration (mins)", "type": "int"},
+                {"key": "duration", "label": "Duration (mins)", "type": "number"},
                 {"key": "notes", "label": "Notes", "type": "text"}
             ]
         },
@@ -106,7 +106,7 @@ async def test_create_action_record(client):
         "/actions/definitions",
         json={
             "name": "Water",
-            "input_schema": [{"key": "volume", "type": "int"}],
+            "input_schema": [{"key": "volume", "label": "Volume", "type": "number"}],
             "target_group_ids": [group_id]
         },
         headers={"Authorization": f"Bearer {token}"}

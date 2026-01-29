@@ -10,7 +10,7 @@ from . import schemas
 
 async def create_action_definition(db: AsyncSession, definition_in: schemas.ActionDefinitionCreate, creator_id: int):
     # Serialize schema to string for storage
-    schema_str = json.dumps(definition_in.input_schema)
+    schema_str = json.dumps([item.model_dump() for item in definition_in.input_schema])
     
     db_definition = models.ActionDefinition(
         name=definition_in.name,
@@ -47,7 +47,7 @@ async def update_action_definition(db: AsyncSession, definition_id: int, definit
     if definition_in.icon_url is not None:
         db_definition.icon_url = definition_in.icon_url
     if definition_in.input_schema is not None:
-        db_definition.input_schema = json.dumps(definition_in.input_schema)
+        db_definition.input_schema = json.dumps([item.model_dump() for item in definition_in.input_schema])
 
     # Update broadcast targets if provided
     if definition_in.target_group_ids is not None:
