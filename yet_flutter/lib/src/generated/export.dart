@@ -10,6 +10,9 @@ export 'fallback/fallback_client.dart';
 // Data classes
 export 'models/action_definition.dart';
 export 'models/action_definition_create.dart';
+export 'models/action_definition_update.dart';
+export 'models/action_input_field.dart';
+export 'models/action_input_type.dart';
 export 'models/action_record.dart';
 export 'models/action_record_create.dart';
 export 'models/body_login_users_login_post.dart';

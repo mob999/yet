@@ -1,26 +1,24 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'action_definition_create.dart';
+part of 'action_definition_update.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-ActionDefinitionCreate _$ActionDefinitionCreateFromJson(
+ActionDefinitionUpdate _$ActionDefinitionUpdateFromJson(
   Map<String, dynamic> json,
-) => ActionDefinitionCreate(
-  name: json['name'] as String,
+) => ActionDefinitionUpdate(
+  name: json['name'] as String?,
   iconUrl: json['icon_url'] as String?,
-  inputSchema: (json['input_schema'] as List<dynamic>?)
-      ?.map((e) => ActionInputField.fromJson(e as Map<String, dynamic>))
-      .toList(),
+  inputSchema: json['input_schema'] as List<dynamic>?,
   targetGroupIds: (json['target_group_ids'] as List<dynamic>?)
       ?.map((e) => (e as num).toInt())
       .toList(),
 );
 
-Map<String, dynamic> _$ActionDefinitionCreateToJson(
-  ActionDefinitionCreate instance,
+Map<String, dynamic> _$ActionDefinitionUpdateToJson(
+  ActionDefinitionUpdate instance,
 ) => <String, dynamic>{
   'name': instance.name,
   'icon_url': instance.iconUrl,

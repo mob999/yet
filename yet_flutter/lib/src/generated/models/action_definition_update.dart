@@ -4,28 +4,26 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'action_input_field.dart';
-
-part 'action_definition_create.g.dart';
+part 'action_definition_update.g.dart';
 
 @JsonSerializable()
-class ActionDefinitionCreate {
-  const ActionDefinitionCreate({
-    required this.name,
+class ActionDefinitionUpdate {
+  const ActionDefinitionUpdate({
+    this.name,
     this.iconUrl,
     this.inputSchema,
     this.targetGroupIds,
   });
   
-  factory ActionDefinitionCreate.fromJson(Map<String, Object?> json) => _$ActionDefinitionCreateFromJson(json);
+  factory ActionDefinitionUpdate.fromJson(Map<String, Object?> json) => _$ActionDefinitionUpdateFromJson(json);
   
-  final String name;
+  final String? name;
   @JsonKey(name: 'icon_url')
   final String? iconUrl;
   @JsonKey(name: 'input_schema')
-  final List<ActionInputField>? inputSchema;
+  final List<dynamic>? inputSchema;
   @JsonKey(name: 'target_group_ids')
   final List<int>? targetGroupIds;
 
-  Map<String, Object?> toJson() => _$ActionDefinitionCreateToJson(this);
+  Map<String, Object?> toJson() => _$ActionDefinitionUpdateToJson(this);
 }

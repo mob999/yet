@@ -110,7 +110,7 @@ class _ActionsClient implements ActionsClient {
   }
 
   @override
-  Future<ActionRecord> createRecordActionsRecordsPost({
+  Future<List<ActionRecord>> createRecordActionsRecordsPost({
     required ActionRecordCreate body,
   }) async {
     final _extra = <String, dynamic>{};
@@ -118,7 +118,7 @@ class _ActionsClient implements ActionsClient {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
-    final _options = _setStreamType<ActionRecord>(
+    final _options = _setStreamType<List<ActionRecord>>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -128,10 +128,45 @@ class _ActionsClient implements ActionsClient {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch<Map<String, Object?>>(_options);
-    late ActionRecord _value;
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<ActionRecord> _value;
     try {
-      _value = ActionRecord.fromJson(_result.data!);
+      _value = _result.data!
+          .map((dynamic i) => ActionRecord.fromJson(i as Map<String, dynamic>))
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<ActionDefinition?> updateDefinitionActionsDefinitionsDefinitionIdPut({
+    required int definitionId,
+    required ActionDefinitionUpdate body,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body.toJson());
+    final _options = _setStreamType<ActionDefinition?>(
+      Options(method: 'PUT', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/actions/definitions/${definitionId}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>?>(_options);
+    late ActionDefinition? _value;
+    try {
+      _value = _result.data == null
+          ? null
+          : ActionDefinition.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

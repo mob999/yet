@@ -406,7 +406,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActionRecord"
+                  "items": {
+                    "$ref": "#/components/schemas/ActionRecord"
+                  },
+                  "type": "array",
+                  "title": "Response Create Record Actions Records Post"
                 }
               }
             }
@@ -427,6 +431,71 @@
             "OAuth2PasswordBearer": []
           }
         ]
+      }
+    },
+    "/actions/definitions/{definition_id}": {
+      "put": {
+        "tags": [
+          "actions"
+        ],
+        "summary": "Update Definition",
+        "operationId": "update_definition_actions_definitions__definition_id__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "definition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Definition Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionDefinitionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionDefinition"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Update Definition Actions Definitions  Definition Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/": {
@@ -483,8 +552,7 @@
           },
           "input_schema": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ActionInputField"
             },
             "type": "array",
             "title": "Input Schema"
@@ -549,11 +617,17 @@
           },
           "input_schema": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ActionInputField"
             },
             "type": "array",
             "title": "Input Schema"
+          },
+          "target_group_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Target Group Ids"
           }
         },
         "type": "object",
@@ -561,6 +635,94 @@
           "name"
         ],
         "title": "ActionDefinitionCreate"
+      },
+      "ActionDefinitionUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "icon_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon Url"
+          },
+          "input_schema": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Schema"
+          },
+          "target_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Group Ids"
+          }
+        },
+        "type": "object",
+        "title": "ActionDefinitionUpdate"
+      },
+      "ActionInputField": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ActionInputType"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "type"
+        ],
+        "title": "ActionInputField"
+      },
+      "ActionInputType": {
+        "type": "string",
+        "enum": [
+          "number",
+          "text",
+          "image"
+        ],
+        "title": "ActionInputType"
       },
       "ActionRecord": {
         "properties": {
@@ -639,16 +801,11 @@
           "definition_id": {
             "type": "integer",
             "title": "Definition Id"
-          },
-          "group_id": {
-            "type": "integer",
-            "title": "Group Id"
           }
         },
         "type": "object",
         "required": [
-          "definition_id",
-          "group_id"
+          "definition_id"
         ],
         "title": "ActionRecordCreate"
       },

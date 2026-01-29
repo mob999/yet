@@ -7,6 +7,7 @@ import 'package:retrofit/retrofit.dart';
 
 import '../models/action_definition.dart';
 import '../models/action_definition_create.dart';
+import '../models/action_definition_update.dart';
 import '../models/action_record.dart';
 import '../models/action_record_create.dart';
 
@@ -32,7 +33,14 @@ abstract class ActionsClient {
 
   /// Create Record
   @POST('/actions/records')
-  Future<ActionRecord> createRecordActionsRecordsPost({
+  Future<List<ActionRecord>> createRecordActionsRecordsPost({
     @Body() required ActionRecordCreate body,
+  });
+
+  /// Update Definition
+  @PUT('/actions/definitions/{definition_id}')
+  Future<ActionDefinition?> updateDefinitionActionsDefinitionsDefinitionIdPut({
+    @Path('definition_id') required int definitionId,
+    @Body() required ActionDefinitionUpdate body,
   });
 }

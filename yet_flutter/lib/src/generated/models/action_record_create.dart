@@ -10,7 +10,6 @@ part 'action_record_create.g.dart';
 class ActionRecordCreate {
   const ActionRecordCreate({
     required this.definitionId,
-    required this.groupId,
     this.inputData,
     this.occurredAt,
   });
@@ -23,8 +22,6 @@ class ActionRecordCreate {
   final DateTime? occurredAt;
   @JsonKey(name: 'definition_id')
   final int definitionId;
-  @JsonKey(name: 'group_id')
-  final int groupId;
 
   Map<String, Object?> toJson() => _$ActionRecordCreateToJson(this);
 }

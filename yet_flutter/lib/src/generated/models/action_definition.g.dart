@@ -14,7 +14,9 @@ ActionDefinition _$ActionDefinitionFromJson(Map<String, dynamic> json) =>
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       iconUrl: json['icon_url'] as String?,
-      inputSchema: json['input_schema'] as List<dynamic>?,
+      inputSchema: (json['input_schema'] as List<dynamic>?)
+          ?.map((e) => ActionInputField.fromJson(e as Map<String, dynamic>))
+          .toList(),
       deletedAt: json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
