@@ -7,7 +7,9 @@ import '../generated/models/token.dart';
 import '../generated/models/body_login_users_login_post.dart';
 
 class AuthService {
-  static late final AuthService instance;
+  static AuthService? _instance;
+  static AuthService get instance => _instance!;
+  static set instance(AuthService service) => _instance = service;
   final Dio _dio;
   Dio get dio => _dio;
   late final UsersClient _client;

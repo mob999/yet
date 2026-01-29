@@ -4,6 +4,7 @@ import '../src/services/config_service.dart';
 import '../src/services/auth_service.dart';
 import 'actions/action_screen.dart';
 import 'groups/my_groups_screen.dart';
+import 'settings/server_config_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final AuthService authService;
@@ -142,7 +143,16 @@ class _SettingsScreen extends StatelessWidget {
               ),
               tileColor: Colors.white.withOpacity(0.05),
               onTap: () {
-                _showBaseUrlDialog(context, configService);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ServerConfigScreen(configService: configService),
+                  ),
+                ).then((_) {
+                  // Reload auth service if needed or just rely on global instance update
+                  // Ideally, if base URL changed, we might want to trigger a rebuild or verify connection
+                });
               },
             ),
             const SizedBox(height: 24),
@@ -174,54 +184,6 @@ class _SettingsScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showBaseUrlDialog(BuildContext context, ConfigService configService) {
-    final controller = TextEditingController(text: configService.baseUrl);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Set API Base URL'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Base URL',
-            hintText: 'http://192.168.1.x:8000',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newUrl = controller.text.trim();
-              if (newUrl.isNotEmpty) {
-                await configService.setBaseUrl(newUrl);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Saved! Please restart app or re-login if needed.',
-                      ),
-                    ),
-                  );
-                  // Since we are in Settings, we might want to restart to apply globally or just update service
-                  // Ideally, trigger a full app restart or navigate to Splash/Main
-                  // For now, let's just leave it as saved.
-                  // Updating the global instance:
-                  AuthService.instance = AuthService(baseUrl: newUrl);
-                }
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
   }
