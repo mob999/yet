@@ -189,7 +189,7 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
             children: [
               _buildTextField(
                 controller: _nameController,
-                label: '动作名称',
+                hint: '动作名称',
                 autoFocus: true,
               ),
               const SizedBox(height: 24),
@@ -263,7 +263,7 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
               Expanded(
                 child: _buildTextField(
                   controller: item.keyController,
-                  label: '输入名称 (Key)',
+                  hint: '输入名称 (Key)',
                   isDense: true,
                 ),
               ),
@@ -281,7 +281,8 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
           DropdownButtonFormField<ActionInputType>(
             value: item.type,
             dropdownColor: const Color(0xFF2C2C2C),
-            decoration: _inputDecoration('类型'),
+            decoration: _inputDecoration(hint: '类型'),
+            hint: const Text('类型', style: TextStyle(color: Colors.white54)),
             style: const TextStyle(color: Colors.white),
             items: ActionInputType.$valuesDefined.map((t) {
               return DropdownMenuItem(
@@ -296,9 +297,8 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
           const SizedBox(height: 8),
           _buildTextField(
             controller: item.labelController,
-            label: '备注 (Label)',
+            hint: '备注 (Label) - 选填',
             isDense: true,
-            hint: '选填',
           ),
         ],
       ),
@@ -327,7 +327,7 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
           if (key.isEmpty) return null; // Skip empty keys
           return ActionInputField(
             key: key,
-            type: e.type,
+            type: e.type ?? ActionInputType.text,
             label: e.labelController.text.trim().isEmpty
                 ? key
                 : e.labelController.text.trim(),
@@ -342,36 +342,29 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
 
   Widget _buildTextField({
     required TextEditingController controller,
-    required String label,
+    required String hint,
     bool autoFocus = false,
     bool isDense = false,
-    String? hint,
   }) {
     return TextField(
       controller: controller,
       style: const TextStyle(color: Colors.white),
       cursorColor: Colors.blueAccent,
       autofocus: autoFocus,
-      decoration: _inputDecoration(label, isDense: isDense, hint: hint),
+      decoration: _inputDecoration(hint: hint, isDense: isDense),
     );
   }
 
-  InputDecoration _inputDecoration(
-    String label, {
-    bool isDense = false,
-    String? hint,
-  }) {
+  InputDecoration _inputDecoration({String? hint, bool isDense = false}) {
     return InputDecoration(
-      labelText: label,
-      labelStyle: const TextStyle(color: Colors.white54),
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.white.withOpacity(0.2)),
+      hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
       isDense: isDense,
       filled: true,
       fillColor: Colors.white.withOpacity(0.05),
       contentPadding: isDense
-          ? const EdgeInsets.symmetric(vertical: 8, horizontal: 8)
-          : const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ? const EdgeInsets.symmetric(vertical: 10, horizontal: 12)
+          : const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide.none,
@@ -391,12 +384,12 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
 class _SchemaItem {
   final TextEditingController keyController;
   final TextEditingController labelController;
-  ActionInputType type;
+  ActionInputType? type;
 
   _SchemaItem({
     String key = '',
     String label = '',
-    this.type = ActionInputType.text,
+    this.type,
   }) : keyController = TextEditingController(text: key),
        labelController = TextEditingController(text: label);
 
