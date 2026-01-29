@@ -380,46 +380,79 @@ class _ActionEditorDialogState extends State<ActionEditorDialog> {
                     
                     // Icon Selection
                     Text(
-                      "图标",
+                      "图标样式",
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: theme.colorScheme.primary,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        // Toggle
-                        SegmentedButton<bool>(
-                          segments: const [
-                            ButtonSegment(value: false, label: Text('Emoji')),
-                            ButtonSegment(value: true, label: Text('图片')),
-                          ],
-                          selected: {_isImageMode},
-                          onSelectionChanged: (s) {
-                            setState(() => _isImageMode = s.first);
-                          },
-                          style: ButtonStyle(
-                            visualDensity: VisualDensity.compact,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SegmentedButton<bool>(
+                            segments: const [
+                              ButtonSegment(
+                                value: false, 
+                                label: Text('Emoji / 文字'),
+                                icon: Icon(Icons.emoji_emotions_outlined),
+                              ),
+                              ButtonSegment(
+                                value: true, 
+                                label: Text('图片上传'),
+                                icon: Icon(Icons.image_outlined),
+                              ),
+                            ],
+                            selected: {_isImageMode},
+                            onSelectionChanged: (s) {
+                              setState(() => _isImageMode = s.first);
+                            },
+                            style: ButtonStyle(
+                              visualDensity: VisualDensity.comfortable,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              side: WidgetStateProperty.all(BorderSide.none),
+                              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                                if (states.contains(WidgetState.selected)) {
+                                  return theme.colorScheme.primaryContainer;
+                                }
+                                return null;
+                              }),
+                            ),
+                            showSelectedIcon: false,
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Input Area
-                        Expanded(
-                          child: _isImageMode 
-                              ? _buildImagePicker(theme) 
-                              : TextField(
-                                  controller: _emojiController,
-                                  decoration: const InputDecoration(
-                                    hintText: '输入Emoji (如 💊)',
-                                    labelText: 'Emoji 图标',
-                                    isDense: true,
+                          const Divider(height: 1, indent: 12, endIndent: 12),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: _isImageMode 
+                                ? _buildImagePicker(theme) 
+                                : TextField(
+                                    controller: _emojiController,
+                                    decoration: InputDecoration(
+                                      hintText: '输入 Emoji 或 1-2 个汉字',
+                                      labelText: '显示的图标',
+                                      labelStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      filled: true,
+                                      fillColor: theme.colorScheme.surface,
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    ),
+                                    maxLength: 2, 
+                                    style: const TextStyle(fontSize: 18),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  maxLength: 2, // Limit length
-                                ),
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 24),
 
@@ -690,28 +723,47 @@ class _ActionEditorDialogState extends State<ActionEditorDialog> {
   }
 
   Widget _buildImagePicker(ThemeData theme) {
-    return Row(
+    return Column(
       children: [
-        if (_uploadedImageUrl != null)
-           Padding(
-             padding: const EdgeInsets.only(right: 8.0),
-             child: ClipRRect(
-               borderRadius: BorderRadius.circular(8),
-               child: Image.network(
-                  _uploadedImageUrl!.startsWith('/') ? "${AuthService.instance.dio.options.baseUrl.replaceAll(RegExp(r'/$'), '')}$_uploadedImageUrl" : _uploadedImageUrl!,
-                  width: 40, 
-                  height: 40,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_,__,___) => const Icon(Icons.error),
-               ),
-             ),
-           ),
-        ElevatedButton.icon(
-            onPressed: _isUploading ? null : _pickAndUploadImage,
-            icon: _isUploading 
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) 
-              : const Icon(Icons.upload, size: 16),
-            label: Text(_uploadedImageUrl == null ? "上传图片" : "更换图片"),
+        GestureDetector(
+          onTap: _isUploading ? null : _pickAndUploadImage,
+          child: Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _uploadedImageUrl != null ? theme.colorScheme.primary : theme.dividerColor,
+                width: 2,
+              ),
+              image: _uploadedImageUrl != null 
+                  ? DecorationImage(
+                      image: NetworkImage(
+                        _uploadedImageUrl!.startsWith('/') 
+                        ? "${AuthService.instance.dio.options.baseUrl.replaceAll(RegExp(r'/$'), '')}$_uploadedImageUrl" 
+                        : _uploadedImageUrl!
+                      ),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: _isUploading 
+                ? const Center(child: CircularProgressIndicator())
+                : _uploadedImageUrl == null 
+                    ? Icon(Icons.add_a_photo_outlined, size: 32, color: theme.colorScheme.primary.withOpacity(0.5))
+                    : null,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: _isUploading ? null : _pickAndUploadImage,
+          icon: const Icon(Icons.upload_file, size: 16),
+          label: Text(_uploadedImageUrl == null ? "点击上传图片" : "重新上传"),
+          style: TextButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            foregroundColor: theme.colorScheme.onSurface.withOpacity(0.7),
+          ),
         ),
       ],
     );
@@ -821,39 +873,68 @@ class _ActionIconNode extends StatelessWidget {
   }
 
   Widget _buildIcon(ActionDefinition def, ThemeData theme) {
-    if (def.iconUrl == null || def.iconUrl!.isEmpty) {
-      return Icon(Icons.bolt, color: theme.colorScheme.primary, size: 32);
-    }
-
-    final url = def.iconUrl!;
-    // Check if it looks like a URL
-    if (url.startsWith('http') || url.startsWith('/')) {
-        try {
+    // 1. Check if we have a valid Icon URL (Image or Text)
+    if (def.iconUrl != null && def.iconUrl!.isNotEmpty) {
+      final url = def.iconUrl!;
+      
+      // A. Image URL
+      if (url.startsWith('http') || url.startsWith('/')) {
+         try {
           return ClipRRect(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             child: Image.network(
               url.startsWith('/') ? "${AuthService.instance.dio.options.baseUrl.replaceAll(RegExp(r'/$'), '')}$url" : url,
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) =>  Text(
-                url.characters.take(2).toString(), 
-                style: const TextStyle(fontSize: 24),
-              ),
+              errorBuilder: (_, __, ___) => _buildFallbackIcon(def, theme),
             ),
           );
         } catch (_) {
-          return Icon(Icons.broken_image, size: 32, color: theme.colorScheme.error);
+          return _buildFallbackIcon(def, theme);
         }
+      } 
+      
+      // B. Emoji / Text
+      return Text(
+        url,
+        style: const TextStyle(fontSize: 32),
+      );
+    }
+    
+    // 2. Fallback to Name Char
+    return _buildFallbackIcon(def, theme);
+  }
+
+  Widget _buildFallbackIcon(ActionDefinition def, ThemeData theme) {
+    String char = '';
+    if (def.name.isNotEmpty) {
+      // Use first 1-2 chars? Just 1 is usually safer for icon circles
+      char = def.name.characters.first; 
+    } else {
+      char = '?';
     }
 
-    // Otherwise treat as Emoji/Text
-    return Text(
-      url,
-      style: const TextStyle(fontSize: 28),
+    return Container(
+      width: 48,
+      height: 48,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withOpacity(0.5),
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        char,
+        style: TextStyle(
+          fontSize: 24, 
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.primary,
+        ),
+      ),
     );
   }
 }
+
 
 class _ActionInputDialog extends StatefulWidget {
   final ActionDefinition definition;
