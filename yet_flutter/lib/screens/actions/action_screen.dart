@@ -42,6 +42,59 @@ class _ActionScreenState extends State<ActionScreen> {
     }
   }
 
+  Future<void> _handleActionTap(ActionDefinition def) async {
+    if (def.inputSchema == null || def.inputSchema!.isEmpty) {
+      // Direct trigger
+      await _triggerAction(def, {});
+    } else {
+      // Show input dialog
+      await showDialog(
+        context: context,
+        builder: (context) => _ActionInputDialog(
+          definition: def,
+          onSubmit: (inputs) => _triggerAction(def, inputs),
+        ),
+      );
+    }
+  }
+
+  Future<void> _triggerAction(
+    ActionDefinition def,
+    Map<String, dynamic> inputs,
+  ) async {
+    try {
+      // Show loading indicator or toast?
+      // For now, simple snackbar "Processing..." could work, but generic loading is reliable.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('触发动作: ${def.name}...'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+
+      final record = ActionRecordCreate(
+        definitionId: def.id,
+        inputData: inputs,
+        occurredAt: DateTime.now(),
+      );
+
+      await _actionService.createRecord(record);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('动作 "${def.name}" 记录成功!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showError(context, e);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -51,6 +104,12 @@ class _ActionScreenState extends State<ActionScreen> {
           Colors.transparent, // Let MainScreen background show through
       appBar: AppBar(
         title: const Text('行动'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _showActionDialog(),
+          ),
+        ],
       ),
       body: _isLoading
           ? Center(
@@ -83,6 +142,7 @@ class _ActionScreenState extends State<ActionScreen> {
                 final def = _definitions![index];
                 return _ActionIconNode(
                   definition: def,
+                  onTap: () => _handleActionTap(def),
                   onLongPress: () => _showActionDialog(definition: def),
                 );
               },
@@ -136,6 +196,8 @@ class _ActionScreenState extends State<ActionScreen> {
     }
   }
 }
+
+// ... ActionEditorDialog ... (Keeping it as is, included below fully for file overwrite)
 
 class ActionEditorDialog extends StatefulWidget {
   final ActionDefinition? definition;
@@ -548,17 +610,20 @@ class _SchemaItem {
 class _ActionIconNode extends StatelessWidget {
   final ActionDefinition definition;
   final VoidCallback? onLongPress;
+  final VoidCallback? onTap;
 
-  const _ActionIconNode({required this.definition, this.onLongPress});
+  const _ActionIconNode({
+    required this.definition,
+    this.onLongPress,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return GestureDetector(
-      onTap: () {
-        // TODO: Handle action logging
-      },
+      onTap: onTap,
       onLongPress: onLongPress,
       child: Column(
         children: [
@@ -613,5 +678,162 @@ class _ActionIconNode extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _ActionInputDialog extends StatefulWidget {
+  final ActionDefinition definition;
+  final Function(Map<String, dynamic>) onSubmit;
+
+  const _ActionInputDialog({
+    required this.definition,
+    required this.onSubmit,
+  });
+
+  @override
+  State<_ActionInputDialog> createState() => _ActionInputDialogState();
+}
+
+class _ActionInputDialogState extends State<_ActionInputDialog> {
+  final Map<String, dynamic> _values = {};
+  final Map<String, TextEditingController> _controllers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (var field in widget.definition.inputSchema ?? []) {
+      if (field.type != ActionInputType.image) {
+        _controllers[field.key] = TextEditingController();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var c in _controllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _handleSubmit() {
+    // Collect values
+    for (var field in widget.definition.inputSchema ?? []) {
+      if (_controllers.containsKey(field.key)) {
+        final text = _controllers[field.key]!.text;
+        if (field.type == ActionInputType.number) {
+          _values[field.key] = num.tryParse(text) ?? 0;
+        } else {
+          _values[field.key] = text;
+        }
+      }
+    }
+    widget.onSubmit(_values);
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final schema = widget.definition.inputSchema ?? [];
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Container(
+        constraints: BoxConstraints(maxWidth: 400),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
+          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 20)],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.definition.name,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: schema.map((field) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildInputField(field, theme),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _handleSubmit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text(
+                    '执行',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField(ActionInputField field, ThemeData theme) {
+    if (field.type == ActionInputType.number) {
+      return TextField(
+        controller: _controllers[field.key],
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          labelText: field.label,
+          hintText: '请输入数字',
+        ),
+      );
+    } else if (field.type == ActionInputType.text) {
+      return TextField(
+        controller: _controllers[field.key],
+        decoration: InputDecoration(
+          labelText: field.label,
+          hintText: '请输入内容',
+        ),
+      );
+    } else {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          '${field.label} (暂不支持此类型)',
+          style: TextStyle(color: theme.colorScheme.error),
+        ),
+      );
+    }
   }
 }
