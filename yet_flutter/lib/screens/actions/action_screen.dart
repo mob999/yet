@@ -4,6 +4,9 @@ import '../../src/services/auth_service.dart';
 import '../../src/services/action_service.dart';
 import '../../src/services/group_service.dart';
 import '../../src/utils/error_handler.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import '../../src/services/file_service.dart';
 
 class ActionScreen extends StatefulWidget {
   const ActionScreen({super.key});
@@ -76,8 +79,6 @@ class _ActionScreenState extends State<ActionScreen> {
     Map<String, dynamic> inputs,
   ) async {
     try {
-      // Show loading indicator or toast?
-      // For now, simple snackbar "Processing..." could work, but generic loading is reliable.
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('触发动作: ${def.name}...'),
@@ -113,8 +114,7 @@ class _ActionScreenState extends State<ActionScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor:
-          Colors.transparent, // Let MainScreen background show through
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('行动'),
         actions: [
@@ -169,8 +169,9 @@ class _ActionScreenState extends State<ActionScreen> {
       builder: (context) => ActionEditorDialog(
         definition: definition,
         groupService: _groupService,
-        onSave: (name, schema, targetGroups) =>
-            _saveAction(name, schema, targetGroups, definition),
+        fileService: FileService(AuthService.instance.dio),
+        onSave: (name, schema, targetGroups, iconUrl) =>
+            _saveAction(name, schema, targetGroups, iconUrl, definition),
       ),
     );
   }
@@ -179,6 +180,7 @@ class _ActionScreenState extends State<ActionScreen> {
     String name,
     List<ActionInputField> schema,
     List<int> targetGroups,
+    String? iconUrl,
     ActionDefinition? existing,
   ) async {
     setState(() => _isLoading = true);
@@ -189,6 +191,7 @@ class _ActionScreenState extends State<ActionScreen> {
           name: name,
           inputSchema: schema,
           targetGroupIds: targetGroups,
+          iconUrl: iconUrl,
         );
         await _actionService.updateDefinition(existing.id, updateBody);
       } else {
@@ -197,6 +200,7 @@ class _ActionScreenState extends State<ActionScreen> {
           name: name,
           inputSchema: schema,
           targetGroupIds: targetGroups,
+          iconUrl: iconUrl,
         );
         await _actionService.createDefinition(createBody);
       }
@@ -210,15 +214,15 @@ class _ActionScreenState extends State<ActionScreen> {
   }
 }
 
-// ... ActionEditorDialog ... (Keeping it as is, included below fully for file overwrite)
-
 class ActionEditorDialog extends StatefulWidget {
   final ActionDefinition? definition;
   final GroupService groupService;
+  final FileService fileService;
   final Function(
     String name,
     List<ActionInputField> schema,
     List<int> targetGroups,
+    String? iconUrl,
   )
   onSave;
 
@@ -226,6 +230,7 @@ class ActionEditorDialog extends StatefulWidget {
     super.key,
     this.definition,
     required this.groupService,
+    required this.fileService,
     required this.onSave,
   });
 
@@ -239,6 +244,12 @@ class _ActionEditorDialogState extends State<ActionEditorDialog> {
   List<Group> _myGroups = [];
   List<int> _selectedGroupIds = [];
   bool _isLoadingGroups = true;
+  
+  // Icon State
+  bool _isImageMode = false;
+  final TextEditingController _emojiController = TextEditingController();
+  String? _uploadedImageUrl;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -250,6 +261,17 @@ class _ActionEditorDialogState extends State<ActionEditorDialog> {
             .toList() ??
         [];
     _selectedGroupIds = List.from(widget.definition?.targetGroupIds ?? []);
+    
+    // Init Icon State
+    final existingIcon = widget.definition?.iconUrl;
+    if (existingIcon != null && (existingIcon.startsWith('http') || existingIcon.startsWith('/'))) {
+      _isImageMode = true;
+      _uploadedImageUrl = existingIcon;
+    } else {
+      _isImageMode = false;
+      _emojiController.text = existingIcon ?? '';
+    }
+
     _loadGroups();
   }
 
@@ -270,6 +292,7 @@ class _ActionEditorDialogState extends State<ActionEditorDialog> {
   @override
   void dispose() {
     _nameController.dispose();
+    _emojiController.dispose();
     for (var item in _schemaItems) {
       item.keyController.dispose();
       item.labelController.dispose();
@@ -352,6 +375,51 @@ class _ActionEditorDialogState extends State<ActionEditorDialog> {
                         labelText: '动作名称',
                       ),
                       autofocus: true,
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Icon Selection
+                    Text(
+                      "图标",
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        // Toggle
+                        SegmentedButton<bool>(
+                          segments: const [
+                            ButtonSegment(value: false, label: Text('Emoji')),
+                            ButtonSegment(value: true, label: Text('图片')),
+                          ],
+                          selected: {_isImageMode},
+                          onSelectionChanged: (s) {
+                            setState(() => _isImageMode = s.first);
+                          },
+                          style: ButtonStyle(
+                            visualDensity: VisualDensity.compact,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        // Input Area
+                        Expanded(
+                          child: _isImageMode 
+                              ? _buildImagePicker(theme) 
+                              : TextField(
+                                  controller: _emojiController,
+                                  decoration: const InputDecoration(
+                                    hintText: '输入Emoji (如 💊)',
+                                    labelText: 'Emoji 图标',
+                                    isDense: true,
+                                  ),
+                                  maxLength: 2, // Limit length
+                                ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
 
@@ -610,8 +678,67 @@ class _ActionEditorDialogState extends State<ActionEditorDialog> {
         .whereType<ActionInputField>()
         .toList();
 
-    widget.onSave(name, schema, _selectedGroupIds);
+    String? finalIconUrl;
+    if (_isImageMode) {
+      finalIconUrl = _uploadedImageUrl;
+    } else {
+      finalIconUrl = _emojiController.text.trim();
+    }
+
+    widget.onSave(name, schema, _selectedGroupIds, finalIconUrl);
     Navigator.pop(context);
+  }
+
+  Widget _buildImagePicker(ThemeData theme) {
+    return Row(
+      children: [
+        if (_uploadedImageUrl != null)
+           Padding(
+             padding: const EdgeInsets.only(right: 8.0),
+             child: ClipRRect(
+               borderRadius: BorderRadius.circular(8),
+               child: Image.network(
+                  _uploadedImageUrl!.startsWith('/') ? "${AuthService.instance.dio.options.baseUrl.replaceAll(RegExp(r'/$'), '')}$_uploadedImageUrl" : _uploadedImageUrl!,
+                  width: 40, 
+                  height: 40,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_,__,___) => const Icon(Icons.error),
+               ),
+             ),
+           ),
+        ElevatedButton.icon(
+            onPressed: _isUploading ? null : _pickAndUploadImage,
+            icon: _isUploading 
+              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) 
+              : const Icon(Icons.upload, size: 16),
+            label: Text(_uploadedImageUrl == null ? "上传图片" : "更换图片"),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 512, maxHeight: 512); 
+    
+    if (image != null) {
+      setState(() => _isUploading = true);
+      try {
+        final file = File(image.path);
+        final url = await widget.fileService.uploadFile(file);
+        if (mounted) {
+           setState(() {
+             _uploadedImageUrl = url;
+             _isUploading = false;
+           });
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+          setState(() => _isUploading = false);
+        }
+      }
+    }
   }
 }
 
@@ -673,23 +800,7 @@ class _ActionIconNode extends StatelessWidget {
                 ],
               ),
               child: Center(
-                child:
-                    definition.iconUrl != null && definition.iconUrl!.isNotEmpty
-                    ? Image.network(
-                        definition.iconUrl!,
-                        width: 40,
-                        height: 40,
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          Icons.bolt,
-                          color: theme.colorScheme.primary,
-                          size: 32,
-                        ),
-                      )
-                    : Icon(
-                        Icons.bolt,
-                        color: theme.colorScheme.primary,
-                        size: 32,
-                      ),
+                child: _buildIcon(definition, theme),
               ),
             ),
           ),
@@ -706,6 +817,40 @@ class _ActionIconNode extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildIcon(ActionDefinition def, ThemeData theme) {
+    if (def.iconUrl == null || def.iconUrl!.isEmpty) {
+      return Icon(Icons.bolt, color: theme.colorScheme.primary, size: 32);
+    }
+
+    final url = def.iconUrl!;
+    // Check if it looks like a URL
+    if (url.startsWith('http') || url.startsWith('/')) {
+        try {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.network(
+              url.startsWith('/') ? "${AuthService.instance.dio.options.baseUrl.replaceAll(RegExp(r'/$'), '')}$url" : url,
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) =>  Text(
+                url.characters.take(2).toString(), 
+                style: const TextStyle(fontSize: 24),
+              ),
+            ),
+          );
+        } catch (_) {
+          return Icon(Icons.broken_image, size: 32, color: theme.colorScheme.error);
+        }
+    }
+
+    // Otherwise treat as Emoji/Text
+    return Text(
+      url,
+      style: const TextStyle(fontSize: 28),
     );
   }
 }

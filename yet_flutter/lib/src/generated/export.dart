@@ -6,6 +6,7 @@
 export 'users/users_client.dart';
 export 'groups/groups_client.dart';
 export 'actions/actions_client.dart';
+export 'files/files_client.dart';
 export 'fallback/fallback_client.dart';
 // Data classes
 export 'models/action_definition.dart';
