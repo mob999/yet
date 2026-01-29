@@ -4,6 +4,8 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
+import 'action_input_field.dart';
+
 part 'action_definition_update.g.dart';
 
 @JsonSerializable()
@@ -21,7 +23,7 @@ class ActionDefinitionUpdate {
   @JsonKey(name: 'icon_url')
   final String? iconUrl;
   @JsonKey(name: 'input_schema')
-  final List<dynamic>? inputSchema;
+  final List<ActionInputField>? inputSchema;
   @JsonKey(name: 'target_group_ids')
   final List<int>? targetGroupIds;
 

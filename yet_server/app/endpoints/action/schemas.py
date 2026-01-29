@@ -52,7 +52,10 @@ class ActionDefinition(ActionDefinitionBase):
     updated_at: datetime
     deleted_at: datetime | None = None
 
+    target_group_ids: list[int] = Field(default_factory=list)
+
     model_config = ConfigDict(from_attributes=True)
+
 
 
 class ActionRecordBase(BaseModel):

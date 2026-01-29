@@ -20,6 +20,9 @@ ActionDefinition _$ActionDefinitionFromJson(Map<String, dynamic> json) =>
       deletedAt: json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
+      targetGroupIds: (json['target_group_ids'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList(),
     );
 
 Map<String, dynamic> _$ActionDefinitionToJson(ActionDefinition instance) =>
@@ -32,4 +35,5 @@ Map<String, dynamic> _$ActionDefinitionToJson(ActionDefinition instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
+      'target_group_ids': instance.targetGroupIds,
     };

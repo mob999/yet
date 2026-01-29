@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../src/generated/export.dart';
 import '../../src/services/auth_service.dart';
 import '../../src/services/action_service.dart';
+import '../../src/services/group_service.dart';
 import '../../src/utils/error_handler.dart';
 
 class ActionScreen extends StatefulWidget {
@@ -14,13 +15,16 @@ class ActionScreen extends StatefulWidget {
 
 class _ActionScreenState extends State<ActionScreen> {
   late final ActionService _actionService;
+  late final GroupService _groupService;
   List<ActionDefinition>? _definitions;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _actionService = ActionService(AuthService.instance.dio);
+    final dio = AuthService.instance.dio;
+    _actionService = ActionService(dio);
+    _groupService = GroupService(dio);
     _loadDefinitions();
   }
 
@@ -95,7 +99,9 @@ class _ActionScreenState extends State<ActionScreen> {
       context: context,
       builder: (context) => _ActionEditorDialog(
         definition: definition,
-        onSave: (name, schema) => _saveAction(name, schema, definition),
+        groupService: _groupService,
+        onSave: (name, schema, targetGroups) =>
+            _saveAction(name, schema, targetGroups, definition),
       ),
     );
   }
@@ -103,6 +109,7 @@ class _ActionScreenState extends State<ActionScreen> {
   Future<void> _saveAction(
     String name,
     List<ActionInputField> schema,
+    List<int> targetGroups,
     ActionDefinition? existing,
   ) async {
     setState(() => _isLoading = true);
@@ -112,6 +119,7 @@ class _ActionScreenState extends State<ActionScreen> {
         final updateBody = ActionDefinitionUpdate(
           name: name,
           inputSchema: schema,
+          targetGroupIds: targetGroups,
         );
         await _actionService.updateDefinition(existing.id, updateBody);
       } else {
@@ -119,7 +127,7 @@ class _ActionScreenState extends State<ActionScreen> {
         final createBody = ActionDefinitionCreate(
           name: name,
           inputSchema: schema,
-          targetGroupIds: [],
+          targetGroupIds: targetGroups,
         );
         await _actionService.createDefinition(createBody);
       }
@@ -135,9 +143,19 @@ class _ActionScreenState extends State<ActionScreen> {
 
 class _ActionEditorDialog extends StatefulWidget {
   final ActionDefinition? definition;
-  final Function(String name, List<ActionInputField> schema) onSave;
+  final GroupService groupService;
+  final Function(
+    String name,
+    List<ActionInputField> schema,
+    List<int> targetGroups,
+  )
+  onSave;
 
-  const _ActionEditorDialog({this.definition, required this.onSave});
+  const _ActionEditorDialog({
+    this.definition,
+    required this.groupService,
+    required this.onSave,
+  });
 
   @override
   State<_ActionEditorDialog> createState() => _ActionEditorDialogState();
@@ -146,6 +164,9 @@ class _ActionEditorDialog extends StatefulWidget {
 class _ActionEditorDialogState extends State<_ActionEditorDialog> {
   late TextEditingController _nameController;
   late List<_SchemaItem> _schemaItems;
+  List<Group> _myGroups = [];
+  List<int> _selectedGroupIds = [];
+  bool _isLoadingGroups = true;
 
   @override
   void initState() {
@@ -156,6 +177,22 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
             ?.map((e) => _SchemaItem.fromField(e))
             .toList() ??
         [];
+    _selectedGroupIds = List.from(widget.definition?.targetGroupIds ?? []);
+    _loadGroups();
+  }
+
+  Future<void> _loadGroups() async {
+    try {
+      final groups = await widget.groupService.getMyGroups();
+      if (mounted) {
+        setState(() {
+          _myGroups = groups;
+          _isLoadingGroups = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingGroups = false);
+    }
   }
 
   @override
@@ -193,12 +230,86 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
                 autoFocus: true,
               ),
               const SizedBox(height: 24),
+
+              const Text(
+                '广播目标小组',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (_isLoadingGroups)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white54,
+                    ),
+                  ),
+                )
+              else if (_myGroups.isEmpty)
+                Text(
+                  '无可用小组',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.3),
+                    fontStyle: FontStyle.italic,
+                  ),
+                )
+              else
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _myGroups.map((group) {
+                    final isSelected = _selectedGroupIds.contains(group.id);
+                    return FilterChip(
+                      label: Text(group.name),
+                      selected: isSelected,
+                      onSelected: (bool selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedGroupIds.add(group.id);
+                          } else {
+                            _selectedGroupIds.remove(group.id);
+                          }
+                        });
+                      },
+                      backgroundColor: const Color(0xFF2C2C2C),
+                      selectedColor: Colors.blueAccent,
+                      checkmarkColor: Colors.white,
+                      labelStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      // visualDensity: VisualDensity.compact, // Remove compact to make it more like a button
+                      side: BorderSide(
+                        color: Colors.white.withOpacity(0.1),
+                      ), // Subtle border
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ), // Rectangular
+                      showCheckmark: false,
+                    );
+                  }).toList(),
+                ),
+              const SizedBox(height: 24),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     '输入列表',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(
@@ -336,7 +447,7 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
         .whereType<ActionInputField>()
         .toList();
 
-    widget.onSave(name, schema);
+    widget.onSave(name, schema, _selectedGroupIds);
     Navigator.pop(context);
   }
 

@@ -19,6 +19,7 @@ class ActionDefinition {
     this.iconUrl,
     this.inputSchema,
     this.deletedAt,
+    this.targetGroupIds,
   });
   
   factory ActionDefinition.fromJson(Map<String, Object?> json) => _$ActionDefinitionFromJson(json);
@@ -37,6 +38,8 @@ class ActionDefinition {
   final DateTime updatedAt;
   @JsonKey(name: 'deleted_at')
   final DateTime? deletedAt;
+  @JsonKey(name: 'target_group_ids')
+  final List<int>? targetGroupIds;
 
   Map<String, Object?> toJson() => _$ActionDefinitionToJson(this);
 }

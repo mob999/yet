@@ -11,7 +11,9 @@ ActionDefinitionUpdate _$ActionDefinitionUpdateFromJson(
 ) => ActionDefinitionUpdate(
   name: json['name'] as String?,
   iconUrl: json['icon_url'] as String?,
-  inputSchema: json['input_schema'] as List<dynamic>?,
+  inputSchema: (json['input_schema'] as List<dynamic>?)
+      ?.map((e) => ActionInputField.fromJson(e as Map<String, dynamic>))
+      .toList(),
   targetGroupIds: (json['target_group_ids'] as List<dynamic>?)
       ?.map((e) => (e as num).toInt())
       .toList(),

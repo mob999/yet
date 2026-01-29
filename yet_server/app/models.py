@@ -85,6 +85,10 @@ class ActionDefinition(TimestampMixin, Base):
     records = relationship("ActionRecord", back_populates="definition")
     groups = relationship("GroupActionDefinition", back_populates="definition")
 
+    @property
+    def target_group_ids(self) -> list[int]:
+        return [g.group_id for g in self.groups]
+
 
 class ActionRecord(TimestampMixin, Base):
     __tablename__ = "action_records"

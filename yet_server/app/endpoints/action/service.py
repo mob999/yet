@@ -3,6 +3,7 @@ import json
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from ... import models
 from . import schemas
@@ -33,7 +34,14 @@ async def create_action_definition(db: AsyncSession, definition_in: schemas.Acti
         await db.commit()
 
     logger.info(f"Action Definition created: {db_definition.name} (id={db_definition.id}) with targets: {definition_in.target_group_ids}")
-    return db_definition
+    
+    # Reload with groups for response
+    result = await db.execute(
+        select(models.ActionDefinition)
+        .options(selectinload(models.ActionDefinition.groups))
+        .filter(models.ActionDefinition.id == db_definition.id)
+    )
+    return result.scalar_one()
 
 async def update_action_definition(db: AsyncSession, definition_id: int, definition_in: schemas.ActionDefinitionUpdate):
     result = await db.execute(select(models.ActionDefinition).filter(models.ActionDefinition.id == definition_id))
@@ -66,14 +74,24 @@ async def update_action_definition(db: AsyncSession, definition_id: int, definit
             db.add(target)
 
     await db.commit()
-    await db.refresh(db_definition)
+    
     logger.info(f"Action Definition updated: {db_definition.name} (id={db_definition.id})")
     
-    return db_definition
+    # Reload with groups for response
+    result = await db.execute(
+        select(models.ActionDefinition)
+        .options(selectinload(models.ActionDefinition.groups))
+        .filter(models.ActionDefinition.id == definition_id)
+    )
+    return result.scalar_one()
 
 async def get_action_definitions(db: AsyncSession):
     # For now, return all definitions. Later we might filter by visibility.
-    result = await db.execute(select(models.ActionDefinition).filter(models.ActionDefinition.deleted_at.is_(None)))
+    result = await db.execute(
+        select(models.ActionDefinition)
+        .options(selectinload(models.ActionDefinition.groups))
+        .filter(models.ActionDefinition.deleted_at.is_(None))
+    )
     return result.scalars().all()
 
 async def create_action_record(db: AsyncSession, record_in: schemas.ActionRecordCreate, user_id: int):
