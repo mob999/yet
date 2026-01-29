@@ -18,7 +18,17 @@ class ActionService {
     return _client.getMyRecordsActionsRecordsGet();
   }
 
-  Future<ActionRecord> createRecord(ActionRecordCreate body) async {
+  Future<List<ActionRecord>> createRecord(ActionRecordCreate body) async {
     return _client.createRecordActionsRecordsPost(body: body);
+  }
+
+  Future<ActionDefinition?> updateDefinition(
+    int id,
+    ActionDefinitionUpdate body,
+  ) async {
+    return _client.updateDefinitionActionsDefinitionsDefinitionIdPut(
+      definitionId: id,
+      body: body,
+    );
   }
 }

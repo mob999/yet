@@ -41,7 +41,7 @@ class ActionDefinitionCreate(ActionDefinitionBase):
 class ActionDefinitionUpdate(BaseModel):
     name: str | None = None
     icon_url: str | None = None
-    input_schema: list[dict[str, Any]] | None = None
+    input_schema: list[ActionInputField] | None = None
     target_group_ids: list[int] | None = None
 
 
