@@ -3,11 +3,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from . import logger as _  # noqa: F401
 from .database import Base, engine
 from .endpoints.action import api as action_api
+from .endpoints.file import api as file_api
 from .endpoints.group import api as group_api
 from .endpoints.user import api as user_api
 from .exceptions import (
@@ -58,6 +60,9 @@ app.add_exception_handler(Exception, global_exception_handler)
 app.include_router(user_api.router, prefix="/users", tags=["users"])
 app.include_router(group_api.router, prefix="/groups", tags=["groups"])
 app.include_router(action_api.router, prefix="/actions", tags=["actions"])
+app.include_router(file_api.router, prefix="/files", tags=["files"])
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def read_root():
