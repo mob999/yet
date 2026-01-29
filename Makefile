@@ -11,7 +11,7 @@ help:
 	@echo "  make clean           - Clean build artifacts and get dependencies"
 
 server-run:
-	cd yet_server && uv run uvicorn app.main:app --reload
+	cd yet_server && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 server-lint:
 	cd yet_server && uv run ruff check --fix
