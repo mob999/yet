@@ -1,11 +1,10 @@
 import json
 from datetime import datetime
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-
-from enum import Enum
 
 class ActionInputType(str, Enum):
     NUMBER = "number"
