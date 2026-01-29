@@ -4,7 +4,7 @@ import '../../src/services/auth_service.dart';
 import '../../src/services/action_service.dart';
 import '../../src/services/group_service.dart';
 import '../../src/utils/error_handler.dart';
-import 'dart:io';
+
 import 'package:image_picker/image_picker.dart';
 import '../../src/services/file_service.dart';
 
@@ -776,8 +776,8 @@ class _ActionEditorDialogState extends State<ActionEditorDialog> {
     if (image != null) {
       setState(() => _isUploading = true);
       try {
-        final file = File(image.path);
-        final url = await widget.fileService.uploadFile(file);
+        // Pass XFile directly
+        final url = await widget.fileService.uploadFile(image);
         if (mounted) {
            setState(() {
              _uploadedImageUrl = url;
