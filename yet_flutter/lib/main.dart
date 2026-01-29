@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'src/services/config_service.dart';
 import 'src/services/auth_service.dart';
 import 'screens/sign_in_screen.dart';
 import 'theme/app_theme.dart';
@@ -8,18 +9,24 @@ void main() async {
 
   // Use 10.0.2.2 for Android emulator to access localhost,
   // or use your local IP if testing on physical device.
-  // We'll use a dynamic baseUrl if needed, but for now 127.0.0.1 (Web/iOS simulator).
-  const baseUrl = "http://127.0.0.1:8000";
+  final configService = await ConfigService.init();
+  final baseUrl = configService.baseUrl;
+
   final authService = AuthService(baseUrl: baseUrl);
   AuthService.instance = authService;
 
-  runApp(MyApp(authService: authService));
+  runApp(MyApp(authService: authService, configService: configService));
 }
 
 class MyApp extends StatelessWidget {
   final AuthService authService;
+  final ConfigService configService;
 
-  const MyApp({super.key, required this.authService});
+  const MyApp({
+    super.key,
+    required this.authService,
+    required this.configService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +36,11 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.darkTheme,
       home: SignInScreen(
         authService: authService,
-        child: HelloWorldScreen(authService: authService),
+        configService: configService, // Pass config service
+        child: HelloWorldScreen(
+          authService: authService,
+          configService: configService,
+        ),
       ),
     );
   }
@@ -37,8 +48,13 @@ class MyApp extends StatelessWidget {
 
 class HelloWorldScreen extends StatelessWidget {
   final AuthService authService;
+  final ConfigService configService;
 
-  const HelloWorldScreen({super.key, required this.authService});
+  const HelloWorldScreen({
+    super.key,
+    required this.authService,
+    required this.configService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +73,10 @@ class HelloWorldScreen extends StatelessWidget {
               if (context.mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
-                    builder: (context) => MyApp(authService: authService),
+                    builder: (context) => MyApp(
+                      authService: authService,
+                      configService: configService,
+                    ),
                   ),
                   (route) => false,
                 );
@@ -99,6 +118,17 @@ class HelloWorldScreen extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 24),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.settings),
+                  title: const Text('API Base URL'),
+                  subtitle: Text(configService.baseUrl),
+                  trailing: const Icon(Icons.edit),
+                  onTap: () {
+                    _showBaseUrlDialog(context, configService);
+                  },
+                ),
               ],
             ),
           ),
@@ -107,6 +137,54 @@ class HelloWorldScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _showBaseUrlDialog(BuildContext context, ConfigService configService) {
+    final controller = TextEditingController(text: configService.baseUrl);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Set API Base URL'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Base URL',
+            hintText: 'http://192.168.1.x:8000',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newUrl = controller.text.trim();
+              if (newUrl.isNotEmpty) {
+                await configService.setBaseUrl(newUrl);
+                // Restart app to apply changes
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => MyApp(
+                        authService: AuthService(
+                          baseUrl: newUrl,
+                        ), // Re-init auth service
+                        configService: configService,
+                      ),
+                    ),
+                    (route) => false,
+                  );
+                }
+              }
+            },
+            child: const Text('Save & Restart'),
+          ),
+        ],
       ),
     );
   }

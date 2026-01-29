@@ -1,16 +1,20 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../src/services/config_service.dart';
 import '../src/services/auth_service.dart';
 import 'main_screen.dart';
+import '../main.dart'; // For MyApp restart logic
 
 class SignInScreen extends StatefulWidget {
   final Widget child;
   final AuthService authService;
+  final ConfigService configService;
 
   const SignInScreen({
     super.key,
     required this.child,
     required this.authService,
+    required this.configService,
   });
 
   @override
@@ -102,7 +106,26 @@ class _SignInScreenState extends State<SignInScreen> {
                   letterSpacing: 2.0,
                 ),
               ),
-              const SizedBox(height: 64),
+              const SizedBox(height: 32),
+              // Base URL Config Button
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () {
+                    _showBaseUrlDialog(context, widget.configService);
+                  },
+                  icon: const Icon(
+                    Icons.settings,
+                    size: 16,
+                    color: Colors.white70,
+                  ),
+                  label: const Text(
+                    'Config Server',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
 
               // Email Field
               ClipRRect(
@@ -225,6 +248,68 @@ class _SignInScreenState extends State<SignInScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showBaseUrlDialog(BuildContext context, ConfigService configService) {
+    final controller = TextEditingController(text: configService.baseUrl);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Set API Base URL'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Base URL',
+            hintText: 'http://192.168.1.x:8000',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newUrl = controller.text.trim();
+              if (newUrl.isNotEmpty) {
+                await configService.setBaseUrl(newUrl);
+                // Restart app to apply changes
+                if (context.mounted) {
+                  Navigator.pop(context); // Close dialog
+                  // Trigger cleanup? For now just dialog confirmation.
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Configuration Saved. Please restart the app if issues persist.',
+                        ),
+                      ),
+                    );
+                    // Force update auth service for current screen usage if needed
+                    // Although a full restart is best, we can just update the instance for the next login attempt
+                    AuthService.instance = AuthService(baseUrl: newUrl);
+                    // Since we are at SignInScreen, we don't need a heavy restart, just updating the service instance used by future calls is okay.
+                    // But widget.authService is final, so this screen holds old reference.
+                    // We must restart the app to propagate the new AuthService.
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => MyApp(
+                          authService: AuthService(baseUrl: newUrl),
+                          configService: configService,
+                        ),
+                      ),
+                      (route) => false,
+                    );
+                  }
+                }
+              }
+            },
+            child: const Text('Save & Restart'),
+          ),
+        ],
       ),
     );
   }
