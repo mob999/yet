@@ -83,68 +83,69 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors
-          .transparent, // Transparent to show MainScreen bg or own dark bg
+      backgroundColor: Colors.transparent, // Transparent to show MainScreen bg
       appBar: AppBar(
-        title: const Text('我的小组', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        title: const Text('我的小组'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
+            icon: const Icon(Icons.add),
             onPressed: () => _showAddGroupOptions(context),
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          ? Center(
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
+            )
           : _groups == null || _groups!.isEmpty
           ? Center(
               child: Text(
                 '暂无小组，创建一个吧！',
-                style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                ),
               ),
             )
           : ListView.builder(
               padding: const EdgeInsets.only(
-                bottom: 100,
-              ), // Space for BottomNavBar
+                bottom: 100, // Space for BottomNavBar
+                top: 16,
+              ),
               itemCount: _groups!.length,
               itemBuilder: (context, index) {
                 final group = _groups![index];
-                return Container(
+                return Card(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
-                    ),
-                  ),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Colors.white.withOpacity(0.2),
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
                       child: Text(
                         group.name.isNotEmpty
                             ? group.name[0].toUpperCase()
                             : '?',
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: theme.colorScheme.primary),
                       ),
                     ),
                     title: Text(
                       group.name,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     subtitle: Text(
                       '邀请码: ${group.inviteCode}',
-                      style: TextStyle(color: Colors.white.withOpacity(0.6)),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 );

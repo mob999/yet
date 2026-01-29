@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'src/services/auth_service.dart';
 import 'screens/sign_in_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,21 +26,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Yet?',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          primary: Colors.teal,
-        ),
-        scaffoldBackgroundColor: Colors.grey[50],
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
+      theme: AppTheme.darkTheme,
       home: SignInScreen(
         authService: authService,
         child: HelloWorldScreen(authService: authService),

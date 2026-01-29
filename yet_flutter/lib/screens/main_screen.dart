@@ -30,8 +30,10 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212), // Dark grey
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
@@ -41,23 +43,21 @@ class _MainScreenState extends State<MainScreen> {
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(
-                0xFF1E1E1E,
-              ).withOpacity(0.8), // Semi-transparent dark
+              color: theme.colorScheme.surface.withOpacity(0.8),
               border: Border(
                 top: BorderSide(
-                  color: Colors.white.withOpacity(0.1),
+                  color: theme.colorScheme.onSurface.withOpacity(0.1),
                   width: 0.5,
                 ),
               ),
             ),
             child: BottomNavigationBar(
               currentIndex: _currentIndex,
-              backgroundColor: Colors.transparent, // Important for glass effect
+              backgroundColor: Colors.transparent,
               elevation: 0,
               type: BottomNavigationBarType.fixed,
-              selectedItemColor: Colors.white,
-              unselectedItemColor: Colors.white.withOpacity(0.5),
+              selectedItemColor: theme.colorScheme.primary,
+              unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.5),
               showSelectedLabels: true,
               showUnselectedLabels: true,
               onTap: (index) {
@@ -72,7 +72,7 @@ class _MainScreenState extends State<MainScreen> {
                   label: '小组',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.play_circle_outline),
+                  icon: Icon(Icons.play_circle_outlined),
                   activeIcon: Icon(Icons.play_circle_filled),
                   label: '行动',
                 ),
@@ -130,6 +130,11 @@ class _SettingsScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
+              textStyle: const TextStyle(
+                inherit: false,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             child: const Text('退出登录'),
           ),

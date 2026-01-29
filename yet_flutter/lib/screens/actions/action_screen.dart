@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../src/generated/export.dart';
 import '../../src/services/auth_service.dart';
@@ -45,32 +44,29 @@ class _ActionScreenState extends State<ActionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor:
+          Colors.transparent, // Let MainScreen background show through
       appBar: AppBar(
-        title: const Text(
-          '行动',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () => _showActionDialog(),
-          ),
-        ],
+        title: const Text('行动'),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          ? Center(
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
+            )
           : _definitions == null || _definitions!.isEmpty
           ? Center(
               child: TextButton(
                 onPressed: () => _showActionDialog(),
                 child: Text(
                   '暂无动作，点击创建',
-                  style: TextStyle(color: Colors.white.withOpacity(0.6)),
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
                 ),
               ),
             )
@@ -97,7 +93,7 @@ class _ActionScreenState extends State<ActionScreen> {
   Future<void> _showActionDialog({ActionDefinition? definition}) async {
     await showDialog(
       context: context,
-      builder: (context) => _ActionEditorDialog(
+      builder: (context) => ActionEditorDialog(
         definition: definition,
         groupService: _groupService,
         onSave: (name, schema, targetGroups) =>
@@ -141,7 +137,7 @@ class _ActionScreenState extends State<ActionScreen> {
   }
 }
 
-class _ActionEditorDialog extends StatefulWidget {
+class ActionEditorDialog extends StatefulWidget {
   final ActionDefinition? definition;
   final GroupService groupService;
   final Function(
@@ -151,17 +147,18 @@ class _ActionEditorDialog extends StatefulWidget {
   )
   onSave;
 
-  const _ActionEditorDialog({
+  const ActionEditorDialog({
+    super.key,
     this.definition,
     required this.groupService,
     required this.onSave,
   });
 
   @override
-  State<_ActionEditorDialog> createState() => _ActionEditorDialogState();
+  State<ActionEditorDialog> createState() => _ActionEditorDialogState();
 }
 
-class _ActionEditorDialogState extends State<_ActionEditorDialog> {
+class _ActionEditorDialogState extends State<ActionEditorDialog> {
   late TextEditingController _nameController;
   late List<_SchemaItem> _schemaItems;
   List<Group> _myGroups = [];
@@ -207,209 +204,284 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: const Color(0xFF1E1E1E),
-      contentPadding: const EdgeInsets.all(24),
-      title: Text(
-        widget.definition != null ? '编辑动作' : '创建动作',
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
+    final theme = Theme.of(context);
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: 400,
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
         ),
-      ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTextField(
-                controller: _nameController,
-                hint: '动作名称',
-                autoFocus: true,
-              ),
-              const SizedBox(height: 24),
-
-              const Text(
-                '广播目标小组',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (_isLoadingGroups)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(8),
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white54,
-                    ),
-                  ),
-                )
-              else if (_myGroups.isEmpty)
-                Text(
-                  '无可用小组',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.3),
-                    fontStyle: FontStyle.italic,
-                  ),
-                )
-              else
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _myGroups.map((group) {
-                    final isSelected = _selectedGroupIds.contains(group.id);
-                    return FilterChip(
-                      label: Text(group.name),
-                      selected: isSelected,
-                      onSelected: (bool selected) {
-                        setState(() {
-                          if (selected) {
-                            _selectedGroupIds.add(group.id);
-                          } else {
-                            _selectedGroupIds.remove(group.id);
-                          }
-                        });
-                      },
-                      backgroundColor: const Color(0xFF2C2C2C),
-                      selectedColor: Colors.blueAccent,
-                      checkmarkColor: Colors.white,
-                      labelStyle: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      // visualDensity: VisualDensity.compact, // Remove compact to make it more like a button
-                      side: BorderSide(
-                        color: Colors.white.withOpacity(0.1),
-                      ), // Subtle border
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ), // Rectangular
-                      showCheckmark: false,
-                    );
-                  }).toList(),
-                ),
-              const SizedBox(height: 24),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
                 children: [
-                  const Text(
-                    '输入列表',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Text(
+                      widget.definition != null ? '编辑动作' : '创建新动作',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(
-                      Icons.add_circle,
-                      color: Colors.blueAccent,
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(
+                      Icons.close,
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
                     ),
-                    onPressed: _addInput,
-                    tooltip: '添加输入',
                   ),
                 ],
               ),
-              if (_schemaItems.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(
-                    '暂无输入项',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.3),
-                      fontStyle: FontStyle.italic,
+            ),
+            const Divider(height: 1),
+
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "基本信息",
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _nameController,
+                      style: theme.textTheme.bodyLarge,
+                      decoration: const InputDecoration(
+                        hintText: '给动作起个名字，如“打卡”',
+                        labelText: '动作名称',
+                      ),
+                      autofocus: true,
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text(
+                      "广播目标",
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (_isLoadingGroups)
+                      Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.colorScheme.primary,
+                        ),
+                      )
+                    else if (_myGroups.isEmpty)
+                      Text(
+                        '您还没有加入任何小组',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.secondary,
+                        ),
+                      )
+                    else
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _myGroups.map((group) {
+                          final isSelected = _selectedGroupIds.contains(
+                            group.id,
+                          );
+                          return FilterChip(
+                            label: Text(group.name),
+                            selected: isSelected,
+                            onSelected: (bool selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedGroupIds.add(group.id);
+                                } else {
+                                  _selectedGroupIds.remove(group.id);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    const SizedBox(height: 24),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "输入字段",
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _addInput,
+                          icon: const Icon(Icons.add, size: 16),
+                          label: const Text("添加字段"),
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (_schemaItems.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest
+                              .withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.dividerColor.withOpacity(0.1),
+                            style: BorderStyle.solid,
+                          ),
+                        ),
+                        child: Text(
+                          '暂无输入字段。用户仅需点击即可触发动作。',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ..._schemaItems.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      return _buildSchemaItem(index, item, theme);
+                    }),
+                  ],
+                ),
+              ),
+            ),
+
+            // Footer Action
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _handleSave,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                  ),
+                  child: const Text(
+                    '保存动作',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
-              ..._schemaItems.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                return _buildSchemaItem(index, item);
-              }),
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('取消', style: TextStyle(color: Colors.white54)),
-        ),
-        TextButton(
-          onPressed: _handleSave,
-          child: const Text(
-            '保存',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
     );
   }
 
-  Widget _buildSchemaItem(int index, _SchemaItem item) {
+  Widget _buildSchemaItem(int index, _SchemaItem item, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white10),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Expanded(
-                child: _buildTextField(
+                flex: 2,
+                child: TextField(
                   controller: item.keyController,
-                  hint: '输入名称 (Key)',
-                  isDense: true,
+                  style: theme.textTheme.bodyMedium,
+                  decoration: const InputDecoration(
+                    labelText: 'Key (ID)',
+                    hintText: '例如: amount',
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: DropdownButtonFormField<ActionInputType>(
+                  value: item.type,
+                  dropdownColor: theme.colorScheme.surfaceContainerHighest,
+                  decoration: const InputDecoration(
+                    labelText: '类型',
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                  items: ActionInputType.$valuesDefined.map((t) {
+                    return DropdownMenuItem(
+                      value: t,
+                      child: Text(
+                        t.toString().split('.').last.toUpperCase(),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (v) {
+                    if (v != null) setState(() => item.type = v);
+                  },
                 ),
               ),
               IconButton(
-                icon: const Icon(
-                  Icons.remove_circle_outline,
-                  color: Colors.redAccent,
-                  size: 20,
-                ),
+                icon: const Icon(Icons.close, size: 18),
+                color: theme.colorScheme.error,
                 onPressed: () => _removeInput(index),
+                tooltip: '删除',
               ),
             ],
           ),
           const SizedBox(height: 8),
-          DropdownButtonFormField<ActionInputType>(
-            value: item.type,
-            dropdownColor: const Color(0xFF2C2C2C),
-            decoration: _inputDecoration(hint: '类型'),
-            hint: const Text('类型', style: TextStyle(color: Colors.white54)),
-            style: const TextStyle(color: Colors.white),
-            items: ActionInputType.$valuesDefined.map((t) {
-              return DropdownMenuItem(
-                value: t,
-                child: Text(t.toString().split('.').last.toUpperCase()),
-              );
-            }).toList(),
-            onChanged: (v) {
-              if (v != null) setState(() => item.type = v);
-            },
-          ),
-          const SizedBox(height: 8),
-          _buildTextField(
+          TextField(
             controller: item.labelController,
-            hint: '备注 (Label) - 选填',
-            isDense: true,
+            style: theme.textTheme.bodyMedium,
+            decoration: const InputDecoration(
+              labelText: '显示名称 (Label)',
+              hintText: '例如: 金额',
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+            ),
           ),
         ],
       ),
@@ -450,46 +522,6 @@ class _ActionEditorDialogState extends State<_ActionEditorDialog> {
     widget.onSave(name, schema, _selectedGroupIds);
     Navigator.pop(context);
   }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    bool autoFocus = false,
-    bool isDense = false,
-  }) {
-    return TextField(
-      controller: controller,
-      style: const TextStyle(color: Colors.white),
-      cursorColor: Colors.blueAccent,
-      autofocus: autoFocus,
-      decoration: _inputDecoration(hint: hint, isDense: isDense),
-    );
-  }
-
-  InputDecoration _inputDecoration({String? hint, bool isDense = false}) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
-      isDense: isDense,
-      filled: true,
-      fillColor: Colors.white.withOpacity(0.05),
-      contentPadding: isDense
-          ? const EdgeInsets.symmetric(vertical: 10, horizontal: 12)
-          : const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Colors.blueAccent),
-      ),
-    );
-  }
 }
 
 class _SchemaItem {
@@ -521,6 +553,8 @@ class _ActionIconNode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       onTap: () {
         // TODO: Handle action logging
@@ -529,45 +563,47 @@ class _ActionIconNode extends StatelessWidget {
       child: Column(
         children: [
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
-                    ),
-                  ),
-                  child: Center(
-                    child:
-                        definition.iconUrl != null &&
-                            definition.iconUrl!.isNotEmpty
-                        ? Image.network(
-                            definition.iconUrl!,
-                            width: 40,
-                            height: 40,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(
-                                  Icons.bolt,
-                                  color: Colors.white,
-                                  size: 32,
-                                ),
-                          )
-                        : const Icon(Icons.bolt, color: Colors.white, size: 32),
-                  ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.cardTheme.color,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: theme.dividerColor.withOpacity(0.05),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Center(
+                child:
+                    definition.iconUrl != null && definition.iconUrl!.isNotEmpty
+                    ? Image.network(
+                        definition.iconUrl!,
+                        width: 40,
+                        height: 40,
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          Icons.bolt,
+                          color: theme.colorScheme.primary,
+                          size: 32,
+                        ),
+                      )
+                    : Icon(
+                        Icons.bolt,
+                        color: theme.colorScheme.primary,
+                        size: 32,
+                      ),
               ),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             definition.name,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
