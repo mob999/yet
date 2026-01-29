@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../src/services/auth_service.dart';
-import 'groups/my_groups_screen.dart';
+import 'main_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   final Widget child;
@@ -60,10 +60,14 @@ class _SignInScreenState extends State<SignInScreen> {
       setState(() => _isSignedIn = true);
       // Navigate to MyGroupsScreen after successful authentication
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MyGroupsScreen()),
-        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MainScreen(authService: widget.authService),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
