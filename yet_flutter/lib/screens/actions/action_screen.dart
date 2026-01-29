@@ -43,6 +43,19 @@ class _ActionScreenState extends State<ActionScreen> {
   }
 
   Future<void> _handleActionTap(ActionDefinition def) async {
+    // Validate target groups
+    if (def.targetGroupIds == null || def.targetGroupIds!.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('记录失败：该动作未关联任何目标小组'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      return;
+    }
+
     if (def.inputSchema == null || def.inputSchema!.isEmpty) {
       // Direct trigger
       await _triggerAction(def, {});
