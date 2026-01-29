@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../src/services/auth_service.dart';
+import 'actions/action_screen.dart';
 import 'groups/my_groups_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -22,7 +23,7 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _screens = [
       const MyGroupsScreen(), // Re-using existing screen for Groups
-      const _PlaceholderScreen(title: '行动'),
+      const ActionScreen(), // Using the new ActionScreen
       _SettingsScreen(authService: widget.authService),
     ];
   }
@@ -83,26 +84,6 @@ class _MainScreenState extends State<MainScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
