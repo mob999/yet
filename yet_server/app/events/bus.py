@@ -1,7 +1,7 @@
 import asyncio
 from collections.abc import Awaitable, Callable
 
-from loguru import logger
+from ..logger import logger
 
 
 # Base Event Class
